@@ -1,0 +1,417 @@
+Ce chapitre utilise le code source récupérable en zip sur le Github ou avec l'étiquette Gitdonnez-vie-structures, dont voici le lien Github. Est-ce qu'il correspond à ce que vous aviez produit pour l'exercice du chapitre précédent ?
+
+Alors, ce fameux problème de connexions répétées à la base de données à chaque requête SQL. Vous vous souvenez de quoi il s'agissait ?
+
+Prenez le fichiersrc/model/post.php. Vous avez la fonctiongetPost()à la ligne 30 :
+
+<?php
+
+
+// ...
+
+function getPost($identifier): Post {
+
+    $database = dbConnect();
+
+    $statement = $database->prepare(
+
+        "SELECT id, title, content, DATE_FORMAT(creation_date, '%d/%m/%Y à %Hh%imin%ss') AS french_creation_date FROM posts WHERE id = ?"
+
+    );
+
+    $statement->execute([$identifier]);
+
+
+    $row = $statement->fetch();
+
+    $post = new Post();
+
+    $post->title = $row['title'];
+
+    $post->frenchCreationDate = $row['french_creation_date'];
+
+    $post->content = $row['content'];
+
+    $post->identifier = $row['id'];
+
+
+    return $post;
+
+}
+
+
+function dbConnect()
+
+{
+
+    $database = new PDO('mysql:host=localhost;dbname=blog;charset=utf8', 'blog', 'password');
+
+
+    return $database;
+
+}
+
+Si votre code appelle deux fois cette fonction, alors la fonctiondbConnectva être appelée deux fois aussi. À chaque fois, une nouvelle connexion à la base de données sera négociée. Se connecter à une base de données, c'est une opération lourde, qui prend du temps. Il faut le faire le moins possible.
+Encapsulez la connexion à la base de données
+
+Je sais, je sais ! Dans le premier chapitre, vous nous avez parlé de structures. Donc ce qu'il faudrait, c'est une structure qui contienne la connexion à la base de données, si elle existe, et qu'on passerait en paramètre à chaque fonction. C'est bien ça ?
+
+Vous avez l'esprit vif, bravo ! Faisons-ça tout de suite dans notre fichiersrc/model/post.php:
+
+<?php
+
+
+class Post
+
+{
+
+    public string $title;
+
+    public string $frenchCreationDate;
+
+    public string $content;
+
+    public string $identifier;
+
+}
+
+
+class PostRepository
+
+{
+
+    public ?PDO $database = null;
+
+}
+
+
+function getPosts(PostRepository $repository): array {
+
+    dbConnect($repository);
+
+    $statement = $repository->database->query(
+
+        "SELECT id, title, content, DATE_FORMAT(creation_date, '%d/%m/%Y à %Hh%imin%ss') AS french_creation_date FROM posts ORDER BY creation_date DESC LIMIT 0, 5"
+
+    );
+
+    $posts = [];
+
+    while (($row = $statement->fetch())) {
+
+        $post = new Post();
+
+        $post->title = $row['title'];
+
+        $post->frenchCreationDate = $row['french_creation_date'];
+
+        $post->content = $row['content'];
+
+        $post->identifier = $row['id'];
+
+
+        $posts[] = $post;
+
+    }
+
+
+    return $posts;
+
+}
+
+
+function getPost(PostRepository $repository, string $identifier): Post {
+
+    dbConnect($repository);
+
+    $statement = $repository->database->prepare(
+
+        "SELECT id, title, content, DATE_FORMAT(creation_date, '%d/%m/%Y à %Hh%imin%ss') AS french_creation_date FROM posts WHERE id = ?"
+
+    );
+
+    $statement->execute([$identifier]);
+
+
+    $row = $statement->fetch();
+
+    $post = new Post();
+
+    $post->title = $row['title'];
+
+    $post->frenchCreationDate = $row['french_creation_date'];
+
+    $post->content = $row['content'];
+
+    $post->identifier = $row['id'];
+
+
+    return $post;
+
+}
+
+
+function dbConnect(PostRepository $repository)
+
+{
+
+    if ($repository->database === null) {
+
+        $repository->database = new PDO('mysql:host=localhost;dbname=blog;charset=utf8', 'blog', 'password');
+
+    }
+
+}
+
+Alors, résumons ce qui a été fait :
+
+    Vous avez écrit une classePostRepositoryà la ligne 11. Elle a une propriété nullable nommée$database, qui représente une potentielle connexion avec une base de données. Le typePDO, c'est le type de la connexion SQL sous-jacente. D'ailleurs, vous aviez remarqué que c'était un type d'objet personnalisé aussi ? Il est simplement fourni par un module PHP.
+
+    Le paramètrePostRepository $repositorya été ajouté à chaque fonction, aux lignes 16 et 35. Ça permet d'avoir la connexion à la base de données, si elle existe, dans le contexte d'exécution de nos fonctions.
+
+    La fonctiondbConnect()reçoit aussi unPostRepositoryà la ligne 52. Mais elle, c'est plutôt pour le modifier. C'est elle qui va être responsable d'initialiser la connexion à la base de données la première fois. Vous noterez que vous avez le droit de changer la valeur des propriétés d'un objet passé en paramètre d'une fonction, et que ça va impacter l'objet partout où il est utilisé par la suite. Même dans les fonctions parentes !
+
+Bon, et si nous reprenions tout ça avec un screencast ? Il y a quand même un bon nombre de modifications, je vais vous les dérouler.
+Utilisez des méthodes
+
+C'est une première étape. Mais malheureusement, en l'état, je vois deux problèmes à notre code :
+
+    Déjà, on répète le paramètrePostRepository $repositoryde partout. C'est verbeux, donc un code moins agréable à écrire. C'est un signe qui ne trompe pas en programmation : vous avez affaire à un contexte.
+
+    Et puis, les$repositorypassés en paramètre devront être initialisés par une autre couche de code : le contrôleur. Nous, on préfèrerait que le modèle soit autonome.
+
+Eh bien, vous savez quoi ? Comme face à la plupart des problèmes récurrents en programmation, des solutions ont déjà été imaginées.
+
+En PHP, comme dans la plupart des langages orientés objet, il est possible de demander à un objet d'exécuter du code, en autonomie complète, dans son propre contexte !
+
+Attendez... Ne me dites pas que ça résoudrait nos deux problèmes directement ?!
+
+Mais si, je vous le dis ! L'idée, c'est qu'une classe peut définir des fonctions, qu'elle saura exécuter d'elle-même. Ces fonctions particulières s'appellent les méthodes de la classe. Et toutes les méthodes auront directement accès à l'instance actuelle, comme contexte, via la variable magique$this. Je vous montre comment on déclare une méthode avec notrePostRepositoryetgetPost():
+
+<?php
+
+
+// ...
+
+class PostRepository
+
+{
+
+    public ?PDO $database = null;
+
+
+    public function getPost(/* PostRepository $this, */string $identifier): Post
+
+    {
+
+        dbConnect($this);
+
+        $statement = $this->database->prepare(
+
+            "SELECT id, title, content, DATE_FORMAT(creation_date, '%d/%m/%Y à %Hh%imin%ss') AS french_creation_date FROM posts WHERE id = ?"
+
+        );
+
+        $statement->execute([$identifier]);
+
+
+        $row = $statement->fetch();
+
+        $post = new Post();
+
+        $post->title = $row['title'];
+
+        $post->frenchCreationDate = $row['french_creation_date'];
+
+        $post->content = $row['content'];
+
+        $post->identifier = $row['id'];
+
+
+        return $post;
+
+    }
+
+}
+
+// ...
+
+On a déplacé la fonctiongetPost()à l'intérieur de la déclaration de notre classe. Et automatiquement, c'est comme si elle recevait en premier paramètre sa propre instance dePostRepository, nommée$this.
+
+Ok, ça semble prometteur. Mais comment je dois utiliser cette "méthode", moi ?
+
+Les méthodes d'un objet s'utilisent presque de la même façon que ses propriétés : avec l'opérateur flèche->. Reprenons le fichiersrc/controllers/post.php, nous allons faire la première ensemble :
+
+<?php
+
+
+require_once('src/model/post.php');
+
+require_once('src/model/comment.php');
+
+
+function post(string $identifier)
+
+{
+
+    $postRepository = new PostRepository();
+
+    $post = $postRepository->getPost($identifier);
+
+    $comments = getComments($identifier);
+
+
+    require('templates/post.php');
+
+}
+
+Premièrement, vous créez une instance de votre objetPostRepository, qui contiendra sa propre connexion à la base de données. Normalement, vous maîtrisez cette partie là.
+
+Deuxièmement, vous utilisez$postRepository->getPost($identifier)pour demander à votre objet de vous faire parvenir le bon billet de blog.
+
+Chaque instance d'une même classe a son propre cycle de vie ! Vous pouvez créer 3PostRepository, et chacun fera sa propre connexion à la base de données au moment où vous lui demanderezgetPost(). Le$thisà l'intérieur de la méthode correspondra toujours à l'objet sur lequel vous appelez la méthode. Chaque objet est autonome ! 🥰
+
+Et si on reprenait ces étapes en vidéo ? C'est parti pour un nouveau screencast !
+Finalisez la refactorisation des billets
+
+Pour le moment, le code de notre fichiersrc/model/post.phpest dans un état un peu brouillon. Une méthode dans la classe et deux fonctions en dehors. Vous allez harmoniser tout ça, en transformant les deux fonctions en méthodes de classePostRepository. Je vous laisse effectuer la modification et je vous mettrai le code final juste après.
+
+Voici mon fichiersrc/model/post.phpaprès modification :
+
+<?php
+
+
+class Post
+
+{
+
+    public string $title;
+
+    public string $frenchCreationDate;
+
+    public string $content;
+
+    public string $identifier;
+
+}
+
+
+class PostRepository
+
+{
+
+    public ?PDO $database = null;
+
+
+    public function getPost(string $identifier): Post
+
+    {
+
+        $this->dbConnect();
+
+        $statement = $this->database->prepare(
+
+            "SELECT id, title, content, DATE_FORMAT(creation_date, '%d/%m/%Y à %Hh%imin%ss') AS french_creation_date FROM posts WHERE id = ?"
+
+        );
+
+        $statement->execute([$identifier]);
+
+
+        $row = $statement->fetch();
+
+        $post = new Post();
+
+        $post->title = $row['title'];
+
+        $post->frenchCreationDate = $row['french_creation_date'];
+
+        $post->content = $row['content'];
+
+        $post->identifier = $row['id'];
+
+
+        return $post;
+
+    }
+
+
+    public function getPosts(): array
+
+    {
+
+        $this->dbConnect();
+
+        $statement = $this->database->query(
+
+            "SELECT id, title, content, DATE_FORMAT(creation_date, '%d/%m/%Y à %Hh%imin%ss') AS french_creation_date FROM posts ORDER BY creation_date DESC LIMIT 0, 5"
+
+        );
+
+        $posts = [];
+
+        while (($row = $statement->fetch())) {
+
+            $post = new Post();
+
+            $post->title = $row['title'];
+
+            $post->frenchCreationDate = $row['french_creation_date'];
+
+            $post->content = $row['content'];
+
+            $post->identifier = $row['id'];
+
+
+            $posts[] = $post;
+
+        }
+
+
+        return $posts;
+
+    }
+
+
+    public function dbConnect()
+
+    {
+
+        if ($this->database === null) {
+
+            $this->database = new PDO('mysql:host=localhost;dbname=blog;charset=utf8', 'blog', 'password');
+
+        }
+
+    }
+
+}
+
+ L'astuce ici était d'utiliser$this->dbConnect()!$thisreprésentant un objet, on peut aussi l'utiliser pour appeler d'autres méthodes sur lui-même. Et bien sûr, il a fallu aussi modifier le fichiersrc/controllers/homepage.php, pour qu'il utilise à son tour unPostRepository:
+
+<?php
+
+
+require_once('src/model/post.php');
+
+
+function homepage()
+
+{
+
+    $postRepository = new PostRepository();
+
+    $posts = $postRepository->getPosts();
+
+
+    require('templates/homepage.php');
+
+}
+
+En résumé
+
+    On peut encapsuler des données dans des objets personnalisés, pour implémenter des cycles de vie complexes.
+
+    Les classes peuvent contenir des méthodes dans leur définition. Ce sont des fonctions qui reçoivent automatiquement la variable$this, contenant l'instance actuelle de la classe. Elles s'utilisent comme les propriétés, avec l'opérateur flèche->sur l'objet souhaité :$object->method();.
+
+    Chaque objet a son propre cycle de vie. Appeler une méthode sur un objet, c'est demander à cet objet d'effectuer une action sur lui-même. Il n'impactera jamais les autres instances de la classe.

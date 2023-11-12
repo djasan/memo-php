@@ -1,0 +1,69 @@
+Très souvent, j'entends des débutants me dire :
+
+    "Où doit-on aller après avoir suivi ton cours sur PHP ?"
+
+    "Comment est-ce que je fais pour avoir une structure propre pour mon code, comme les pros ?"
+
+Bonne nouvelle, ce cours va vous apporter la réponse à cette grande question. Pas toute la réponse bien sûr, car on n'a jamais fini d'apprendre... Mais au moins un bon début de réponse.
+
+Durant tout ce cours, on va suivre ensemble un projet fil rouge : c'est votre première semaine dans une agence de développement, où vous venez d'être accepté en stage.
+
+Félicitations !
+
+Votre chef de projet vous confie d'emblée une mission. Il va falloir reprendre le blog de l'Association de Volley-Ball de Nuelly, l'AVBN. À l'époque, il avait été fait par un développeur amateur, mais maintenant que le club vient de monter de division, il leur faut un outil un peu plus robuste.
+
+Vous ne savez pas par quoi commencer ? Pas d'inquiétude, je vais vous accompagner tout au long de ce projet pour accomplir votre mission : professionnaliser le code de ce blog avec l’architecture MVC.
+Professionnalisez votre code
+
+Qu'est-ce qui fait qu'un code est "professionnel" ?  🤔
+
+Contrairement à ce qu'on pourrait croire, ce n'est pas parce qu'un code "marche" qu'il est "professionnel".
+
+Voici quelques caractéristiques d'un code professionnel que l'on entend souvent :
+
+    Il est modulaire : généralement découpé en de nombreux fichiers, où chaque fichier a un rôle et un seul à la fois.
+
+    Il est découplé : les fichiers sont conçus pour fonctionner indépendamment les uns des autres.
+
+    Il est documenté : la documentation prend généralement la forme de commentaires spéciaux placés au-dessus des méthodes et classes publiques, pouvant être réutilisées dans d'autres projets (renseignez-vous sur la PHPdoc). On peut générer automatiquement une page web de documentation à partir de ces commentaires.
+
+    Il est en anglais : c'est la langue des développeurs et développeuses partout sur la planète. Les variables et les noms des fonctions sont en anglais et peuvent être compris par tous.
+
+    Il est clair : et pour ça, il respecte très souvent les normes de formatage. En PHP, la plupart des développeurs recommandent de suivre la PSR-12. Je vous conseille d'y jeter un œil, si vous êtes curieux. Dans tous les cas, on commencera à se l'imposer dès nos premières lignes de code dans ce cours !
+
+Les professionnels disent d'ailleurs qu'un code qui nécessite beaucoup de commentaires est un code trop complexe. Un code bien écrit contient des commentaires qui expliquent le pourquoi, pas le comment.
+
+Ce genre de code a de nombreux avantages :
+
+    Il est réutilisable : si un jour nous avons codé un fichier utile, nous pouvons nous en resservir dans un autre projet ou dans un autre endroit du même projet. On gagne du temps en n'ayant pas à tout refaire à chaque fois !
+
+    Il est facile d'y travailler à plusieurs : chaque fichier étant indépendant (et généralement de petite taille), on peut travailler en équipe de 5, 10, voire 100 personnes sur un même projet. Si tout était mélangé dans un seul et même gros fichier, il serait impossible de le modifier en même temps !
+
+    Il est évolutif : quand quelqu'un vient vous demander une nouvelle fonctionnalité, il est facile de l'ajouter. Vous n'avez pas peur de tout casser, car vous avez même la possibilité de créer des tests automatisés. Vous savez que ça va marcher et votre code ne sera pas plus compliqué.
+
+Le dernier point (un code évolutif) est très important. Si on demande à un développeur expérimenté chez OpenClassrooms :
+
+"Qu'est-ce qu'un bon code ?"
+
+Celui-ci vous répondra en général :
+
+"C'est un code qui est apte au changement."
+
+En résumé, on peut donc gagner du temps, travailler à plusieurs et ajouter des fonctionnalités facilement sans (presque) jamais causer des bugs. Ça fait envie, non ?
+
+Eh bien c'est possible ! Il y a de nombreuses techniques de professionnels pour y arriver. Ce cours va vous en donner un certain nombre. Évidemment, il va vous falloir pratiquer en parallèle pour bien comprendre ! 😊
+Découvrez les étapes pour devenir un pro
+
+Prenons un instant un peu de recul. J'estime que pour se professionnaliser, il faut passer par 3 étapes :
+
+    Écrire ses premières lignes de code PHP, faire en sorte que "ça marche". Grâce au cours
+    Concevez votre site web avec PHP et MySQL, normalement c'est bon.
+
+    Structurer son code de façon modulaire, pour qu'on puisse l'améliorer facilement et travailler dessus à plusieurs. On ne va pas ajouter de nouvelles fonctionnalités, mais on va les coder "mieux".
+
+    Utiliser ensuite un framework PHP (ex : Symfony) comme base pour un projet. Le framework automatise la plupart des choses que nous aurons construites "à la main" dans ce cours, pour vous permettre d'aller plus vite et de ne pas réinventer la roue à chaque fois.
+    Lisez : Développez votre site web avec le framework Symfony
+
+En théorie, vous pourriez donc sauter cette étape 2 (ce cours) et apprendre directement à utiliser un framework comme Symfony. Cependant, j'estime que la marche est trop haute pour un débutant. Elle ne permet pas d'apprécier l'intérêt du framework.
+
+Les frameworks seront toujours mieux faits que votre code à la main. Cependant, apprendre à faire les choses à la main a du bon ! Ça vous permettra de comprendre pourquoi on a créé des frameworks... et vous ne serez pas perdus dans leur architecture.

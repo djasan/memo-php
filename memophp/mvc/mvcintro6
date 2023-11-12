@@ -1,0 +1,353 @@
+Bon, reprenons un peu la pratique. Cette fois, on a pour mission de permettre aux lecteurs d'ajouter des commentaires sur les billets. Que faut-il faire ?
+
+Vous devriez commencer à avoir l'habitude. Ce sera une bonne occasion de pratiquer ! On va faire les choses dans cet ordre :
+
+    Modifier la vue, pour afficher le formulaire. Il a deux champs : l'auteur et le commentaire.
+
+    Écrire le nouveau contrôleur, qui traite les données envoyées via le formulaire.
+
+    Mettre à jour le routeur, pour envoyer vers le bon contrôleur.
+
+    Écrire le modèle. À chaque commentaire ajouté, sa date de création est sauvegardée en base automatiquement. On va aussi en profiter pour refactoriser le modèle selon le métier. 😁
+
+Voyons voir comment ça se passe en pratique !
+
+C'est un très bon moment pour vous exercer. Récupérez le zip du code depuis le Github, l'étiquette Git `ajoutez-commentaires`, ou prenez le code depuis l'interface Github, et essayez d'avancer avant de regarder chaque partie du cours.
+Mettez à jour la vue
+
+Il faut commencer par modifier un peu la vue qui affiche un billet et ses commentaires (templates/post.php). En effet, nous devons ajouter le formulaire pour pouvoir envoyer des commentaires ! 
+
+<!-- templates/post.php:18 -->
+
+
+<!-- ... -->
+
+<h2>Commentaires</h2>
+
+
+<form action="index.php?action=addComment&id=<?= $post['identifier'] ?>" method="post">
+
+   <div>
+
+    <label for="author">Auteur</label><br />
+
+    <input type="text" id="author" name="author" />
+
+   </div>
+
+   <div>
+
+    <label for="comment">Commentaire</label><br />
+
+    <textarea id="comment" name="comment"></textarea>
+
+   </div>
+
+   <div>
+
+    <input type="submit" />
+
+   </div>
+
+</form>
+
+<!-- ... -->
+
+Rien de spécial, c'est un formulaire quoi. 😅
+
+Il faut juste bien écrire l'URL vers laquelle le formulaire est censé envoyer. Ici, vous voyez que j'envoie vers une actionaddComment. Il faudra bien penser à mettre à jour le routage.
+
+Vous voyez aussi qu'on a besoin de$post['identifier']que nous n'avions pas récupéré jusque là. On va modifier notre modèle, à la ligne 31, pour aller la chercher depuis la base de données :
+
+<?php
+
+// src/model.php:31
+
+
+// ...
+
+$post = [
+
+    'title' => $row['title'],
+
+    'french_creation_date' => $row['french_creation_date'],
+
+    'content' => $row['content'],
+
+    'identifier' => $row['id'],
+
+];
+
+// ...
+
+Écrivez le contrôleur
+
+L'écriture de notre nouveau contrôleur va être un peu plus conséquente. Le contrôleur va contrôler les données soumises par l'utilisateur via le formulaire. C'est un travail rigoureux : on peut par exemple vouloir vérifier le nombre de caractères dans le commentaire ou bien si le nom de l'auteur ne contient pas de caractères invalides. Ici on fera une version qui contient le strict minimum.
+
+Le contrôleur va prendre en paramètres les deux entrées utilisateur :
+
+    L'identifiant du billet auquel le commentaire doit être associé. Ce sera une chaîne de caractères.
+
+    Les données soumises par le formulaire, sous la forme d'un tableau associatif de chaînes de caractères. Ça sera pratique, car c'est le format que PHP utilise dans la super variable$_POST!
+
+ Allons-y, créons ce nouveau fichiersrc/controllers/add_comment.php:
+
+<?php
+
+// src/controllers/add_comment.php
+
+
+require_once('src/model/comment.php');
+
+
+function addComment(string $post, array $input)
+
+{
+
+    $author = null;
+
+    $comment = null;
+
+    if (!empty($input['author']) && !empty($input['comment'])) {
+
+        $author = $input['author'];
+
+        $comment = $input['comment'];
+
+    } else {
+
+        die('Les données du formulaire sont invalides.');
+
+    }
+
+
+    $success = createComment($post, $author, $comment);
+
+    if (!$success) {
+
+        die('Impossible d\'ajouter le commentaire !');
+
+    } else {
+
+        header('Location: index.php?action=post&id=' . $post);
+
+    }
+
+}
+
+ Vous noterez qu'on teste le résultat renvoyé par notre modèle. Écrire en base de données est une opération qui peut échouer, alors on demandera à notre modèle de renvoyertrueen cas de succès oufalseen cas d'échec. Pour résumer : on teste s'il y a eu une erreur et on arrête tout (avec undie) si jamais il y a un souci.
+
+Si tout va bien, il n'y a aucune page à afficher. Les données ont été insérées, on redirige donc le visiteur vers la page du billet pour qu'il puisse voir son beau commentaire qui vient d'être inséré ! 😍
+Mettez à jour le routeur
+
+Il faut maintenant qu'on enregistre notre contrôleur au niveau de notre routeur. Ajoutons unelseifdans notre routeur (index.php) pour appeler le nouveau contrôleuraddCommentqu'on vient de créer et on devrait avoir tout bon !
+
+<?php
+
+// index.php
+
+
+require_once('src/controllers/add_comment.php');
+
+require_once('src/controllers/homepage.php');
+
+require_once('src/controllers/post.php');
+
+
+if (isset($_GET['action']) && $_GET['action'] !== '') {
+
+    if ($_GET['action'] === 'post') {
+
+        if (isset($_GET['id']) && $_GET['id'] > 0) {
+
+            $identifier = $_GET['id'];
+
+
+            post($identifier);
+
+        } else {
+
+            echo 'Erreur : aucun identifiant de billet envoyé';
+
+
+            die;
+
+        }
+
+    } elseif ($_GET['action'] === 'addComment') {
+
+        if (isset($_GET['id']) && $_GET['id'] > 0) {
+
+            $identifier = $_GET['id'];
+
+
+            addComment($identifier, $_POST);
+
+        } else {
+
+            echo 'Erreur : aucun identifiant de billet envoyé';
+
+
+            die;
+
+        }
+
+    } else {
+
+        echo "Erreur 404 : la page que vous recherchez n'existe pas.";
+
+    }
+
+} else {
+
+    homepage();
+
+}
+
+Ouah ! Il devient dur à lire ce routeur, non ?
+
+ C'est vrai qu'avec tous cesifimbriqués, ça commence à faire beaucoup... Mais il n'y a pas trop le choix. Ceci dit, il y a une meilleure façon de gérer les erreurs, on va en reparler dans un prochain chapitre. 😉
+
+Comme vous pouvez le voir, je teste si on a bien un ID de billet. Si c'est le cas, j'appelle le contrôleuraddComment, qui appelle le modèle pour enregistrer les informations en base. Pour la validation des champs du formulaire, on a donné cette responsabilité au contrôleur, alors on lui passe la variable$_POSTdirectement ! Ah, c'est beau quand tout est bien organisé ! 😄
+
+Quand vous commencerez à utiliser des frameworks, vous verrez que les routeurs sont vraiment très puissants. Ils permettent de ne presque pas écrire de code, tout en faisant quand même ces vérifications. Notre routeur n'en est pas encore là, mais ce ne serait qu'une question de temps si on voulait l'améliorer !
+Écrivez le modèle
+
+On y est presque ! Il nous reste à créer notre nouveau fichier modèle. Je vous propose qu'on segmente autour de la notion de "commentaire" sur les billets. On va donc créer un nouveau fichiersrc/model/comment.php, où vous allez mettre la nouvelle fonctioncreateComment(). On va aussi en profiter pour y déplacer la fonctiongetComments():
+
+<?php
+
+// src/model/comment.php
+
+
+function getComments(string $post)
+
+{
+
+    $database = commentDbConnect();
+
+    $statement = $database->prepare(
+
+        "SELECT id, author, comment, DATE_FORMAT(comment_date, '%d/%m/%Y à %Hh%imin%ss') AS french_creation_date FROM comments WHERE post_id = ? ORDER BY comment_date DESC"
+
+    );
+
+    $statement->execute([$post]);
+
+
+    $comments = [];
+
+    while (($row = $statement->fetch())) {
+
+        $comment = [
+
+            'author' => $row['author'],
+
+            'french_creation_date' => $row['french_creation_date'],
+
+            'comment' => $row['comment'],
+
+        ];
+
+
+        $comments[] = $comment;
+
+    }
+
+
+    return $comments;
+
+}
+
+
+function createComment(string $post, string $author, string $comment)
+
+{
+
+    $database = commentDbConnect();
+
+    $statement = $database->prepare(
+
+        'INSERT INTO comments(post_id, author, comment, comment_date) VALUES(?, ?, ?, NOW())'
+
+    );
+
+    $affectedLines = $statement->execute([$post, $author, $comment]);
+
+
+    return ($affectedLines > 0);
+
+}
+
+
+function commentDbConnect()
+
+{
+
+    try {
+
+        $database = new PDO('mysql:host=localhost;dbname=blog;charset=utf8', 'blog', 'password');
+
+
+        return $database;
+
+    } catch(Exception $e) {
+
+        die('Erreur : '.$e->getMessage());
+
+    }
+
+}
+
+Rien de bien sorcier. Il faut juste penser à récupérer en paramètres les informations dont on a besoin :
+
+    l'ID du billet auquel se rapporte le commentaire ;
+
+    le nom de l'auteur ;
+
+    le contenu du commentaire.
+
+Le reste des informations (l'ID du commentaire, la date) sera généré automatiquement.
+
+Au fait, nous avons refactorisé la manière de récupérer nos commentaires, mais nous n'avons pas encore mis à jour le contrôleursrc/controllers/post.php. Il faut qu'on ajoute unrequire_once:
+
+<?php
+
+// src/controllers/post.php
+
+
+require_once('src/model.php');
+
+require_once('src/model/comment.php');
+
+
+function post(string $identifier)
+
+{
+
+    $post = getPost($identifier);
+
+    $comments = getComments($identifier);
+
+
+    require('templates/post.php');
+
+}
+
+Hum, j'ai deux questions qui me chagrinent. Déjà, vous laissez les fichierssrc/model.phpetsrc/model/comment.php, ça ne vous pose pas de problème ? Ensuite, on a dupliqué la fonctiondbConnect(), ce n'est pas idéal, non ?
+
+Tout d'abord, le premier point. Je suis d'accord avec vous, ce n'est pas ce que je trouve de plus beau. Cependant, quand on travaille sur un projet, on doit en permanence faire des concessions. Ici, je ne touche pas aux billets de blog. D'ailleurs, la plupart du temps, je ne me souviendrais sans doute plus de comment ce code fonctionne.
+
+Je fais donc le choix de construire à côté de l'existant. Quand on souhaitera refactoriser notre gestion des billets de blog, on le fera dans un autre commit. C'est une des grandes forces de la segmentation métier du code ! 😁
+
+Pour le second point, c'est un peu plus complexe. D'une part, l'unité de code "Comment" est différente de l'unité de code "Post". Ce qui affecte l'un ne doit pas forcément affecter l'autre. Ici, on peut considérer comme une coïncidence que la base de données utilisée soit la même entre ces deux bouts de code : par exemple, on pourrait très bien stocker nos commentaires via une API spécialisée.
+
+Cela étant dit, toute la partie configuration (nom de la base, mot de passe) est ici dupliquée. Et ça, ce n'est pas une question de coïncidence. C'est une faiblesse dans notre code. Mais c'est une faiblesse qu'on résoudra beaucoup plus facilement quand on maîtrisera la programmation orientée objet et tous les outils qu'elle nous apportera. J'ai hâte !
+Récapitulons en vidéo
+
+Ajouter une fonctionnalité entière, c'est énormément de modifications à plein d'endroits du code. Si vous n'êtes pas certain d'avoir tout suivi, voici un screencast qui reprend l'ensemble des modifications apportées parmi tous les fichiers.
+En résumé
+
+    Notre blog a maintenant une nouvelle fonctionnalité : permettre à l'utilisateur d'ajouter des commentaires aux billets.
+
+    Une segmentation métier du code est maintenant mise en place. La notion de "commentaire" est bien isolée et plus facile à retrouver.

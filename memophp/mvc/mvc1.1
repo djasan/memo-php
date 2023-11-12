@@ -1,0 +1,146 @@
+C'est parti pour un plongeon dans les profondeurs techniques du blog !
+
+Vous pouvez récupérer le code pour ce chapitre du cours en zip sur le Github du cours.
+
+Vous êtes confiant avec Git ? Vous pouvez récupérer le code qui sert de support à ce cours en téléchargeant le dépôt Git Adoptez une architecture MVC en PHP. Vous pourrez ensuite travailler dessus directement depuis votre ordinateur ! Et pour les autres, ne vous faites pas de souci : vous aurez un lien vers le code lisible sur Github à chaque chapitre.
+
+Si on se concentre uniquement sur le côté visiteur, celui-ci affiche une liste de billets depuis la base de données :
+Le super blog de l'AVBN montre deux billets d'actualité.
+Aperçu du résultat du TP blog
+
+Le code de cette page tient dans un fichier  index.php . Voici le code qui avait été écrit (j'ai juste retiré le lien vers la page des commentaires pour rester simple pour l'instant) :
+
+<!DOCTYPE html>
+
+<html>
+
+   <head>
+
+    <meta charset="utf-8" />
+
+    <title>Le blog de l'AVBN</title>
+
+    <link href="style.css" rel="stylesheet" />
+
+   </head>
+
+
+   <body>
+
+    <h1>Le super blog de l'AVBN !</h1>
+
+    <p>Derniers billets du blog :</p>
+
+
+    <?php
+
+    // Connexion à la base de données
+
+    try
+
+    {
+
+        $bdd = new PDO('mysql:host=localhost;dbname=blog;charset=utf8', 'blog', 'password');
+
+    }
+
+    catch(Exception $e){
+
+            die( 'Erreur : '.$e->getMessage()   );
+
+    }
+
+
+    // On récupère les 5 derniers billets
+
+    $req = $bdd->query('SELECT id, titre, contenu, DATE_FORMAT(date_creation, \'%d/%m/%Y à %Hh%imin%ss\') AS date_creation_fr FROM billets ORDER BY date_creation DESC LIMIT 0, 5');
+
+
+    while ($donnees = $req->fetch())
+
+    {
+
+    ?>
+
+    <div class="news">
+
+        <h3>
+
+            <?php echo htmlspecialchars($donnees['titre']); ?>
+
+            <em>le <?php echo $donnees['date_creation_fr']; ?></em>
+
+        </h3>
+
+        <p>
+
+        <?php
+
+        // On affiche le contenu du billet
+
+                echo    nl2br ( htmlspecialchars( $donnees['contenu']));
+
+        ?>
+
+        <br />
+
+        <em><a href="#">Commentaires</a></em>
+
+        </p>
+
+    </div>
+
+    <?php
+
+    } // Fin de la boucle des billets
+
+    $req->closeCursor();
+
+    ?>
+
+   </body>
+
+</html>
+
+Si vous avez bien lu le chapitre précédent, il y a des défauts qui devraient vous sauter aux yeux. 👀
+
+    Le code est en français. Pour le titre de la page ("Le blog de l'AVBN") et les autres informations affichées à l'utilisateur, c'est normal. Par contre, le code PHP lui-même ne devrait pas être en français (par exemple la variable $donnees). C'est mauvais, car le code ne pourra pas être lu par des développeurs qui ne parlent pas français.
+
+    Le formatage ne respecte aucune règle. Les tabulations n'ont pas toujours le même nombre d'espaces – et encore, quand il y a des tabulations. Les accolades se baladent où bon leur semble. Et j'en passe. Il est beaucoup plus difficile de s'y retrouver et donc de comprendre la logique du code écrit.
+
+    Tout est dans un seul fichier. On y mélange des opérations en PHP, des requêtes SQL et du code HTML. Il ne manquerait plus que du code CSS au milieu et ça serait le pompon ! Pas étonnant qu'on ait besoin de commentaires pour se repérer dans les différentes sections du fichier.
+
+Le fichier commence par du HTML, suivi par du PHP, SQL, PHP et encore du HTML.
+HTML, PHP, SQL, PHP, HTML, PHP... on mélange un peu trop les choses ici !
+
+Je ne comprends pas. Ce code fonctionne, non ? Ça ne suffit pas ?
+
+Il fonctionne, certes. Mais si vous commencez à ajouter de nouvelles fonctionnalités, vous allez avoir besoin d'ajouter de nouvelles requêtes SQL au milieu. Très vite, le fichier va grossir et faire plusieurs centaines de lignes. Ça marchera toujours. Ça ne sera même pas forcément plus lent.
+
+Par contre, à chaque fois que vous allez ouvrir votre fichier, vous allez pousser un grand soupir :
+
+    "Pfff, qu'est-ce que j'avais fait déjà ? Hmm, là c'était à peu près l'endroit qui s'occupait de ça. Bon je modifie ici... ah merde ça plante. Ah oui, c'est vrai, il y avait aussi un truc à modifier à un autre endroit du fichier pour que ça marche. Oh là là, ça fait déjà 4 heures que j'essaye de faire ça, je suis perdu, c'est trop compliqué la programmation !"
+
+Et bien sûr, n'oubliez pas que la plupart du temps les projets se font en équipe. Jenny, qui fait l'intégration HTML et CSS du site, va devoir naviguer entre vos fonctions PHP. De votre côté, vous vous perdrez au milieu de ses imbrications de balises. Et au moment de rassembler votre travail, ce sera la fête des conflits Git !
+
+Pour des raisons de pudeur, la citation de Jenny en train de résoudre ces conflits de code sera remplacée par des émojis.
+
+    😐
+
+    ⁉️🤔
+
+    🙄 😑
+
+    😡
+
+    💩
+
+    ‼️ 🔫 💣 🗡 🗯 💀 ☠️
+
+Bref, vous avez compris : cette personne va souhaiter très fort ne plus jamais avoir à travailler sur ce projet !
+
+Pour vous éviter ce genre de situation, je vais vous montrer comment on peut mieux organiser ce code en le découpant. Allons-y par étapes !
+
+Si vous voulez voir le code avant nos modifications, voici le lien pour le télécharger en zip à partir du Github. 
+
+Si vous êtes à l’aise avec Git, vous pouvez suivre le lien vers l'étiquette Github de cette étape, pour le tester. Une fois que vous avez cloné le dépôt, faites un  git checkout apprehendez-limites-code-debutant  pour vous retrouvez sur la bonne étiquette. Mémorisez bien cette commande, vous en aurez besoin !

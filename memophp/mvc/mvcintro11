@@ -1,0 +1,198 @@
+Alors, vous avez réussi à correctement composer avec vos classes ? Le zip du code est téléchargeable sur le Github. L'étiquette Git pour accéder au code estutilisez-namespace  . Et voici l'étiquette Github.
+
+Dans notre grand combat pour la propreté du code, nous pouvons aller plus loin (spoiler : nous pouvons toujours aller plus loin). Il va bien falloir s'arrêter quelque part, et on s'approche du but que je m'étais fixé : vous aider à structurer votre code en MVC.
+
+Il y a quand même un nouveau concept que j'aimerais vous présenter...
+Découvrez le rôle des namespaces
+
+De quoi va-t-on parler aujourd'hui ? Des espaces de nom (namespaces). Leur rôle ? Éviter les collisions de noms de classes.
+
+Imaginez. Vous travaillez sur un gros programme. Vous réutilisez plusieurs bibliothèques. Vous pouvez être sûr qu'à un moment donné, il va bien y avoir quelqu'un qui a eu l'idée saugrenue de créer une classe CommentRepositoryouPostRepositorytout comme vous ! À ce moment-là, c'est le plantage garanti : on n'a pas le droit d'appeler deux classes par le même nom…
+
+… sauf si on utilise les namespaces bien sûr ! Ils agissent un peu comme des dossiers. Ils vous permettent d'avoir 2 classes du même nom dans votre programme, du moment qu'elles sont dans des namespaces différents.
+Mettez en place votre premier namespace
+
+Concrètement, les namespaces ont cette forme :
+
+Entreprise\Projet\Section
+
+Ce sont vraiment comme des dossiers. D'ailleurs, il est recommandé d'utiliser l'arborescence des dossiers pour construire celle de l'espace de nom. Vous pouvez en imbriquer autant que vous voulez :
+
+Entreprise\Projet\Section\SousSection\SousSousSection
+
+Dans la pratique, il y a deux cas principaux pour choisir la racine de son espace de nom :
+
+    Soit vous codez une bibliothèque à réutiliser, et vous commencerez par le nom de l'entreprise qui est responsable du projet, suivi du nom du projet. Utilisez votre nom ou votre pseudonyme, si vous n'avez pas d'entreprise.
+
+    Soit vous codez une application finale, dont le code ne sera pas partagé. Dans ce cas, il est plutôt recommandé d'utiliser le nom générique `Application` (ou `App`) comme racine de vos espaces de nom. Avec notre blog, nous sommes dans cette seconde catégorie.
+
+Pour définir un namespace, rien de plus simple. On va déclarer unnamespacejuste avant la définition de la classe :
+
+<?php
+
+
+namespace Application\Model\Post;
+
+
+require_once('src/lib/database.php');
+
+
+// ...
+
+
+class PostRepository
+
+{
+
+    public \DatabaseConnection $connection;
+
+
+    // ...
+
+}
+
+Cela a un impact : les noms complets de toutes les classes et fonctions déclarées dans ce fichier sont désormais différents ! Ils sont le résultat de la concaténation de l'espace de nom avec leur nom interne.
+
+Ça veut dire que je vais devoir repasser sur tous mes fichiers pour renseigner le nouveau nom ?
+
+Exactement ! Tous les fichiers qui font appel aux classes de ce fichier doivent maintenant ajouter le namespace en préfixe. Voilà par exemple à quoi va ressembler votre contrôleursrc/controllers/post.php:
+
+<?php
+
+
+require_once('src/lib/database.php');
+
+require_once('src/model/comment.php');
+
+require_once('src/model/post.php');
+
+
+function post(string $identifier)
+
+{
+
+    $connection = new DatabaseConnection();
+
+
+    $postRepository = new \Application\Model\Post\PostRepository();
+
+    $postRepository->connection = $connection;
+
+    $post = $postRepository->getPost($identifier);
+
+
+    $commentRepository = new CommentRepository();
+
+    $commentRepository->connection = $connection;
+
+    $comments = $commentRepository->getComments($identifier);
+
+
+    require('templates/post.php');
+
+}
+
+Attention : en plaçant le contenu du fichier  src/model/post.php  dans notre namespace, nous allons avoir un problème pour appeler  DatabaseConnection  . En effet,  DatabaseConnection  est une classe qui se trouve à la racine (dans le namespace global). Pour régler le problème, il faudra écrire  \DatabaseConnection  (ligne 11) :
+
+<?php
+
+
+namespace Application\Model\Post;
+
+
+require_once('src/lib/database.php');
+
+
+// ...
+
+
+class PostRepository
+
+{
+
+    public \DatabaseConnection $connection;
+
+
+    // ...
+
+}
+
+ Par contre, la manière de pointer vers la classePost, définie dans le même espace de nom, ne change pas. Pensez aux fichiers et aux dossiers : quand vous êtes dans un dossier, pour pointer vers un fichier dans celui-ci, vous utilisez simplement son nom, pas de préfixe !
+Évitez la répétition du préfixe
+
+Hum, ça me paraît quand même plus long à écrire tout ça. N'y a-t-il pas moyen d'éviter de répéter le namespace en préfixe à chaque fois ?
+
+Oui, c'est possible. Il faut utiliser le mot-clé useen début d'un fichier qui fait régulièrement appel à des classes d'un même namespace :
+
+<?php
+
+
+require_once('src/lib/database.php');
+
+require_once('src/model/comment.php');
+
+require_once('src/model/post.php');
+
+
+use Application\Model\Post\PostRepository;
+
+
+function post(string $identifier)
+
+{
+
+    $connection = new DatabaseConnection();
+
+
+    $postRepository = new PostRepository();
+
+    $postRepository->connection = $connection;
+
+    $post = $postRepository->getPost($identifier);
+
+
+    $commentRepository = new CommentRepository();
+
+    $commentRepository->connection = $connection;
+
+    $comments = $commentRepository->getComments($identifier);
+
+
+    require('templates/post.php');
+
+}
+
+D'ailleurs, la plupart du code que vous pourrez croiser dans le milieu professionnel utilise toujours cesuse. C'est une manière de construire un index des dépendances de votre fichier.
+
+Il existe un complément au mot-cléuse, avec le mot-cléas. Il sert à définir un nom personnalisé. Par exemple, vous pouvez vous en servir pour appeler votrePostRepositorypar son prénom :
+
+<?php
+
+ 
+
+use Application\Model\Post\PostRepository as John;
+
+ 
+
+$postRepository = new John();
+
+Vous n'en aurez pas souvent besoin, mais l'usage de certaines bibliothèques de code implique de le connaître. 😛
+Récapitulons en vidéo
+
+Je vous propose de refaire un tour de cette notion d'espace de nom en suivant ce screencast. J'y reprends pas à pas la déclaration d'un namespace pour un fichier, les changements que ça implique pour les autres fichiers et l'utilisation du mot-cléuse.
+Exercez-vous
+
+L'exercice pour ce chapitre sera simple à expliquer : mettez tout le code situé dans le dossiersrc/dans des espaces de noms ! Ça va faire beaucoup de petites modifications et vous devrez vérifier que toutes les fonctionnalités de votre blog restent fonctionnelles.
+
+Pour le code de vos contrôleurs, vous avez le choix : refactoriser vos contrôleurs en objets ou les laisser en fonctions. Je vous recommande la première option. Cependant, si vous prenez la seconde, sachez que le mot-cléuse functionexiste. 😁
+
+Comme à notre habitude, vous pourrez comparer votre code au résultat que j'attends, grâce à l'étiquette Git que je vous passerai au début du prochain chapitre. Bon courage !
+En résumé
+
+    Un espace de nom, ou namespace, est un "dossier virtuel" dans lequel ranger : des classes, des fonctions et d'autres espaces de nom. Il se renseigne en haut du fichier, avant toute déclaration de classe ou de fonction, avec le mot-clénamespace.
+
+    Une arborescence d'espaces de nom permet de segmenter ses classes et fonctions de la même façon qu'une arborescence de dossiers permet de segmenter ses fichiers.
+
+    Une fois qu'une classe ou fonction est rangée dans un espace de nom, on doit y accéder par son chemin complet par le code situé dans un autre espace de nom. Le code situé dans le même espace de nom peut toujours utiliser les noms sans le préfixe.
+
+    Le mot-cléusepeut être utilisé pour pré-définir un nom au sein d'un fichier. Le cas le plus habituel est de s'en servir pour enlever le préfixe.

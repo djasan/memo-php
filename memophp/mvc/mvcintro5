@@ -1,0 +1,63 @@
+On commence à avoir un sacré nombre de fichiers entre tous nos dossiers !
+Nous avons deux fichiers pour homepage et post entre les dossiers controllers et templates.
+Nos fichiers, un peu organisés, mais qui se reproduisent à grande vitesse
+
+Si on continue à ajouter des pages, on va se retrouver avec de nouveaux contrôleurs, de nouvelles vues... ça va vite devenir compliqué de s'y retrouver ! Il nous faut des moyens d'organiser notre code à volonté.
+
+Il est temps que je commence à vous briefer sur nos futurs rangements ! 🗂
+Identifiez le métier
+
+J'ai visité un site la dernière fois, il y avait au moins 200 pages différentes. Ça veut dire qu'on va avoir 200 fichiers dans notre dossier de contrôleurs ? 🤔
+
+Vous commencez à vous poser de bonnes questions, j'aime ça ! 😁
+
+Bien sûr que non, on ne va pas laisser ça se produire. Ce serait invivable – et je vous parle d'expérience... Il va falloir qu'on apprenne à diviser notre code selon le métier.
+
+Hum, ce n'est pas la première fois que vous nous parlez de métier. "Logique métier", "code métier"... Mais qu'est-ce que vous entendez par ce mot précisément ?
+
+Je vais essayer de vous donner une définition simplifiée avec une comparaison : le métier, c'est toute la partie de votre projet qui n'est pas la technique. Oui, c'est vaste ! Ça laisse encore du flou, mais c'est déjà pas mal.
+
+Passons par deux exemples :
+
+    Une connexion à une base de données MySQL, c'est une notion technique. Il n'y a que le développeur qui la maîtrise. C'est d'ailleurs lui (ou l'architecte avant lui), qui fait le choix de la mettre en place. Et souvent, si vous en parlez à votre client, ça risque d'être du charabia pour lui.
+
+    Afficher des commentaires sous un billet de blog, de l'autre côté, c'est une notion métier. La plupart du temps, c'est le client qui introduit ce type de notion dans le projet.
+
+Chaque notion métier est bien souvent supportée par plusieurs notions techniques. Rien que pour mettre en ligne une page qui afficherait Hello, world!  (une demande métier, donc), on a besoin d'Apache, de PHP, de HTML... Tout ça, ce sont des notions techniques. Vous commencez à comprendre la différence ?
+Regroupez par sections du site
+
+Eh bien, pour pouvoir segmenter votre code à l'infini, sachez que les professionnels recommandent en général de le segmenter selon des sections du métier. Finis, les dossiers qui contiennent toutes vos requêtes SQL !
+
+Et bonus pour vous, il vous suffira d'écouter votre interlocuteur pour définir votre segmentation ! Projetez-vous un instant dans cette demande du client :
+
+> Bonjour,
+Pourriez-vous nous ajouter, s'il vous plaît, une page affichant un formulaire de contact sur le front ?
+Nous nous tenons disponible pour en discuter plus en détail.
+
+Pour information, on appelle front, ou "front-office", toute la partie d'un site auquel a accès l'utilisateur final. À l'opposé du back, ou "back-office", accessible seulement aux administrateurs du site.
+
+Où est-ce que vous placeriez votre contrôleur ? Je vous laisse réfléchir quelques secondes...
+
+Ma proposition, dans ce cas, serait de le mettre danssrc/controllers/(on garde bien sûr notre architecture MVC). Puis, à l'intérieur de ce dossier, je le placerais dans un fichierfront/contact.php: dans la section front, un formulaire de contact. Au total :src/controllers/front/contact.php. Le plus dur est finalement de correctement traduire vers de l'anglais ! 😁
+
+En fait, pour organiser ses demandes, le client a déjà conçu une segmentation métier. Parfois elle est un peu floue et il faut que vous la précisiez. Parfois elle est très claire et il ne reste qu'à traduire. Ce qui est sûr, c'est que quand surgira la prochaine demande de modification, le client utilisera les mêmes mots pour décrire ce qu'il veut. Vous n'aurez qu'à les suivre pour retrouver le code responsable de la fonctionnalité !
+
+Bien reçu pour les contrôleurs. Mais on fait quoi de nos modèles et de nos vues ?
+
+Eh bien, on va pouvoir utiliser exactement la même typologie de segmentation ! Pas obligatoirement la même arborescence, parce que parfois une arborescence de contrôleurs est plus simple qu'une arborescence de vue ou de modèle. Ou l'inverse. Mais elles se ressembleront fortement.
+
+Dans notre cas, je proposerais de créer les fichiers suivants :
+
+    templates/front/contact.php: notre vue, qui est directement liée à notre contrôleur et qui a exactement la même arborescence.
+
+    src/model/contact.php: notre modèle qui sera responsable de sauvegarder les données de contact dans ma base de données, puis de les lire depuis celle-ci. La notion de contact est globale à notre blog (on aura sans doute une section "back-office" pour les traiter). La segmentationfrontn'ayant donc pas de sens ici, on ne met pas le dossierfront/dans le chemin complet de ce fichier.
+
+Il y a toujours des tas de possibilités pour segmenter son métier. Faites de votre mieux pour écouter le client, mais faites surtout de votre mieux. Je vous parle de mes propositions à chaque fois, parce qu'une solution différente pourrait être encore plus pertinente pour votre équipe.
+On peut même parler de "sensibilité" pour ce genre de prises de décisions. Vous avez toute votre vie de développeur pour évoluer là-dessus !
+En résumé
+
+    Les notions métier, ce sont les notions qui ne sont pas techniques. C'est ce dont parle votre client.
+
+    En analysant la segmentation du métier faite par notre client, on est capable de l'utiliser pour regrouper les morceaux de code qui vont ensemble. On peut ainsi s'y retrouver beaucoup plus facilement par la suite.
+
+    Une segmentation métier est, par nature, très subjective et toujours sujette aux changements. N'ayez pas peur d'essayer, et de réaffiner plus tard. Il n'y a jamais une seule bonne réponse.

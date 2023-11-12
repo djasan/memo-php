@@ -1,0 +1,292 @@
+La première bonne pratique que nous devons prendre consiste à éviter de mélanger l'affichage du reste.
+
+Ça veut dire qu'on va séparer le code HTML du code PHP ?
+
+Oui, en gros. Mais vous allez voir que ce n'est pas aussi simple que ça. 😉
+Faites une première séparation
+
+Commençons par séparer le code en deux sections :
+
+    On récupère les données. C'est là qu'on fait notamment la requête SQL. Vous voyez aussi qu'on crée une variable structurée, appelée$posts, qui contient les "données brutes" utiles à l'affichage de chaque billet de blog. Je vous recommande d'utiliser uniquement des types PHP simples pour ces variables : tableaux, chaînes de caractères, nombres entiers...
+
+    On affiche les données en les formatant. Notez qu'on utilise uniquement ces fameuses "données brutes" en provenance de la première section. Étant donné qu'on dispose de variables de types simples, il est assez facile de les formater comme on le souhaite (avec les fonctions nl2br()et htmlspecialchars(), par exemple).
+
+C'est relativement simple à faire :
+
+<?php
+
+
+// We connect to the database.
+
+try {
+
+    $database = new PDO('mysql:host=localhost;dbname=blog;charset=utf8', 'blog', 'password');
+
+} catch(Exception $e) {
+
+    die('Erreur : '.$e->getMessage());
+
+}
+
+
+// We retrieve the 5 last blog posts.
+
+$statement = $database->query(
+
+    "SELECT id, titre, contenu, DATE_FORMAT(date_creation, '%d/%m/%Y à %Hh%imin%ss') AS date_creation_fr FROM billets ORDER BY date_creation DESC LIMIT 0, 5"
+
+);
+
+$posts = [];
+
+while (($row = $statement->fetch())) {
+
+    $post = [
+
+        'title' => $row['titre'],
+
+        'french_creation_date' => $row['date_creation_fr'],
+
+        'content' => $row['contenu'],
+
+    ];
+
+
+    $posts[] = $post;
+
+}
+
+
+?>
+
+
+<!DOCTYPE html>
+
+<html>
+
+    <head>
+
+        <meta charset="utf-8" />
+
+        <title>Le blog de l'AVBN</title>
+
+        <link href="style.css" rel="stylesheet" />
+
+    </head>
+
+
+    <body>
+
+        <h1>Le super blog de l'AVBN !</h1>
+
+        <p>Derniers billets du blog :</p>
+
+
+        <?php
+
+        foreach ($posts as $post) {
+
+        ?>
+
+            <div class="news">
+
+                <h3>
+
+                    <?php echo htmlspecialchars($post['title']); ?>
+
+                    <em>le <?php echo $post['french_creation_date']; ?></em>
+
+                </h3>
+
+                <p>
+
+                    <?php
+
+                    // We display the post content.
+
+                    echo nl2br(htmlspecialchars($post['content']));
+
+                    ?>
+
+                    <br />
+
+                    <em><a href="#">Commentaires</a></em>
+
+                </p>
+
+            </div>
+
+        <?php
+
+        } // The end of the posts loop.
+
+        ?>
+
+    </body>
+
+</html>
+
+Dans le premier chapitre, je vous disais qu'écrire du code professionnel, c'était notamment écrire du code en anglais et respecter une norme de formatage. Alors commencez directement à prendre de bonnes habitudes en corrigeant tout ce qui ne convient pas !
+
+Grâce à cette séparation, on sait plus facilement repérer la section qui s'occupe de récupérer les données de celle qui les affiche. C'est assez dense, hein ? Je vous propose de suivre ce screencast qui reprend chacune de nos modifications, pas à pas :
+
+Bon, c'est déjà bien mieux, mais ce n'est encore qu'un début. On peut aller plus loin et découper ça en 2 fichiers distincts. Allons-y.
+Séparez le code en 2 fichiers
+
+Ici, je vous propose de faire 2 fichiers :
+
+    index.php (il y a toujours un  index.php  , c'est le fichier de base de votre site lu en premier) : il s'occupera de récupérer les données et d'appeler l'affichage.
+
+    templates/homepage.php  : il affichera les données dans la page.
+
+On crée un dossier qui contient seulement les gabarits d'affichage (les templates, en anglais) de chacune des pages du blog. Ils sont séparés du code responsable d'agir sur les données. Vous verrez plus tard dans votre apprentissage sur les frameworks (Symfony ou Laravel, par exemple), que c'est une pratique très souvent utilisée. Vous saurez que ça aide votre code à être plus maintenable et que ça favorise le travail en équipe !
+
+Commençons !
+index.php
+
+<?php
+
+
+// We connect to the database.
+
+try {
+
+    $database = new PDO('mysql:host=localhost;dbname=blog;charset=utf8', 'blog', 'password');
+
+} catch(Exception $e) {
+
+    die('Erreur : '.$e->getMessage());
+
+}
+
+
+// We retrieve the 5 last blog posts.
+
+$statement = $database->query(
+
+    "SELECT id, titre, contenu, DATE_FORMAT(date_creation, '%d/%m/%Y à %Hh%imin%ss') AS date_creation_fr FROM billets ORDER BY date_creation DESC LIMIT 0, 5"
+
+);
+
+$posts = [];
+
+while (($row = $statement->fetch())) {
+
+    $post = [
+
+        'title' => $row['titre'],
+
+        'french_creation_date' => $row['date_creation_fr'],
+
+        'content' => $row['contenu'],
+
+    ];
+
+
+    $posts[] = $post;
+
+}
+
+
+require('templates/homepage.php');
+
+?>
+
+ Le code se contente d'appeler à la fin le fichier templates/homepage.php.
+
+La fonction require  marche comme un include. Il y a une seule différence : si le fichier n'est pas trouvé quand on utilise , le script s'arrête et plante. C'est volontaire de ma part : la page ne doit pas s'afficher si on n'arrive pas à charger le fichier qui contient l'affichage.
+
+Ça aurait aussi bien marché avec un include, mais c'est plus "propre" d'utiliser un require  dans ce cas, parce qu'il vaut mieux faire planter le script si le fichier n'était pas trouvé.
+templates/homepage.php
+
+<!DOCTYPE html>
+
+<html>
+
+    <head>
+
+        <meta charset="utf-8" />
+
+        <title>Le blog de l'AVBN</title>
+
+        <link href="style.css" rel="stylesheet" />
+
+    </head>
+
+
+    <body>
+
+        <h1>Le super blog de l'AVBN !</h1>
+
+        <p>Derniers billets du blog :</p>
+
+
+        <?php
+
+        foreach ($posts as $post) {
+
+        ?>
+
+            <div class="news">
+
+                <h3>
+
+                    <?php echo htmlspecialchars($post['title']); ?>
+
+                    <em>le <?php echo $post['french_creation_date']; ?></em>
+
+                </h3>
+
+                <p>
+
+                    <?php
+
+                    // We display the post content.
+
+                    echo nl2br(htmlspecialchars($post['content']));
+
+                    ?>
+
+                    <br />
+
+                    <em><a href="#">Commentaires</a></em>
+
+                </p>
+
+            </div>
+
+        <?php
+
+        } // The end of the posts loop.
+
+        ?>
+
+    </body>
+
+</html>
+
+Le fichier de l'affichage fonctionne comme avant. Quand il est chargé, la variable $posts lui est automatiquement transmise par  index.php  grâce au  require  . Il ne lui reste plus qu'à afficher les informations.
+
+Je ne comprends pas. Je pensais que le fichier de l'affichage ne contiendrait que du HTML... mais il mélange en réalité du PHP et du HTML ! En quoi est-ce que c'est mieux ?
+
+En fait, on n'a pas vraiment le choix. On est bien obligé de faire de temps en temps des  echo  pour afficher le contenu des variables.
+
+Ce qui compte, c'est que le rôle de ce code soit uniquement d'afficher des informations. On n'y fait pas des opérations ou des calculs complexes, on n'y fait pas des requêtes en base de données.
+
+Encore une fois, si vous souhaitez être sûr de n'avoir rien raté, je vous invite à suivre ce screencast. Il reprend tous les changements qu'on a pu apporter dans cette seconde section.
+Exercez-vous
+
+Testez ce code ! Il doit fonctionner comme avant, vérifiez.
+
+Nous faisons ici ce qu'on appelle de la refactorisation. On change l'organisation du code, sans ajouter de nouvelles fonctionnalités. Le but est d'avoir un code plus facile à modifier par la suite.
+
+Vous trouverez depuis le Github le zip contenant le code du début de chapitre.
+
+Pour les adeptes de Git, vous pouvez travailler à partir de l'étiquette  isolez-affichage-traitement-php et essayer d'apporter toutes ces modifications par vous-même. Vous pouvez aussi voir le code dans l'état où il était au début de ce chapitre directement sur l'interface Github.
+En résumé
+
+    Une première étape pour rendre son code professionnel est d'isoler la partie du code responsable de générer l'affichage pour l'utilisateur.
+
+    Les variables fournies aux templates doivent être le plus simple possible, pour rendre plus facile le travail sur l'interface utilisateur.
+
+    Les gabarits d'affichage peuvent contenir du code – et c'est d'ailleurs ce qui fait toute leur puissance – mais celui-ci n'a pour rôle que d'afficher des informations.

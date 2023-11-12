@@ -1,0 +1,167 @@
+Pour l'instant, 2 fichiers permettent d'accéder aux pages de notre site. Ce sont les 2 contrôleurs :
+
+    index.php: accueil du site, liste des derniers billets ;
+
+    post.php: affichage d'un billet et de ses commentaires.
+
+Si on continue comme ça, on va avoir une quantité faramineuse de fichiers à la racine de notre dépôt de code :contact.php,editComment.php…
+
+Et alors, c'est mal ?
+
+Eh bien, disons que ça fonctionnerait. Mais ce n'est pas parce que ça fonctionnerait que ce serait forcément l'idéal.
+
+Plus vous ajouterez de fonctionnalités sur le blog, plus le nombre de fichiers va augmenter. Ça deviendra très difficile pour l'équipe de développeurs de s'y retrouver quand une modification sera demandée.
+
+En plus de ça, on a souvent besoin d'exécuter du code en amont des contrôleurs :
+
+    pour monitorer ce qui se passe sur votre site ;
+
+    pour gérer les sessions utilisateurs ;
+
+    ou encore du code "outillage", pour simplifier l'accès au contenu des requêtes HTTP.
+
+Quand vous voudrez mettre en place ou modifier ces points, il faudra que vous passiez sur chacun des fichiers contrôleurs. Quelle galère !
+Appréhendez la nouvelle structure des fichiers
+
+Pour faciliter la maintenance, il est plus simple de passer par un contrôleur frontal, qui va jouer le rôle de routeur. Son objectif va être d'appeler le bon contrôleur (on dit qu'il route les requêtes).
+Le routeur appelle le bon contrôleur, qui appelle le modèle puis la vue.
+Le routeur
+
+On va travailler ici sur deux sections de code bien distinctes :
+
+    index.php: ce sera le nom de notre routeur. Le routeur étant le premier fichier qu'on appelle en général sur un site, c'est normal de le faire dansindex.php. Il va se charger d'appeler le bon contrôleur.
+
+    src/controllers/: ce dossier contiendra nos contrôleurs dans des fonctions. On va y regrouper nos anciensindex.phpetpost.php.
+
+Chaque contrôleur a le droit à son propre fichier. C'est une unité de code qui a une taille souvent suffisamment grande pour ne pas devoir la mélanger avec d'autres.
+
+On va faire passer un paramètreactiondans l'URL de notre routeurindex.phppour savoir quelle page on veut appeler. Par exemple :
+
+    index.php: va afficher la page d'accueil avec la liste des billets ;
+
+    index.php?action=post: va afficher un billet et ses commentaires.
+
+Certains trouvent que l'URL n'est plus très jolie sous cette forme. Peut-être préféreriez-vous voirmonsite.com/postplutôt queindex.php?action=post.
+
+Heureusement, cela peut se régler avec un mécanisme de réécriture d'URL (URL rewriting). On ne l'abordera pas ici, car ça se fait dans la configuration du serveur web (Apache), mais vous pouvez vous renseigner sur le sujet si vous voulez !
+Créez les contrôleurs
+
+Commençons par notre dossiercontrollers/. On va y créer nos contrôleurs, un par fichier :
+
+<?php
+
+// controllers/homepage.php
+
+
+require_once('src/model.php');
+
+
+function homepage() {
+
+    $posts = getPosts();
+
+
+    require('templates/homepage.php');
+
+}
+
+<?php
+
+// controllers/post.php
+
+
+require_once('src/model.php');
+
+
+function post(string $identifier)
+
+{
+
+    $post = getPost($identifier);
+
+    $comments = getComments($identifier);
+
+
+    require('templates/post.php');
+
+}
+
+On a apporté deux changements majeurs :
+
+    Nos contrôleurs sont placés dans des fonctions. Chaque fichier devient du type "bibliothèque de code" et ne fait plus rien par lui-même. Il va simplement fournir à notre routeur un point d'accès pour lancer notre code.
+
+    Notre fichier src/model.phpest inclus avec require_once. C'est une fonction très semblable àrequire, mais qui vérifie d'abord si le fichier a déjà été inclus ! Étant donné quesrc/model.phpest aussi un fichier de type "bibliothèque de code", on souhaite qu'il ne soit inclus qu'une seule fois. Sans ça, l'inclusion de nos deux contrôleurs va déclencher une double inclusion de notre modèle et donc un plantage de PHP.
+
+Les plus attentifs auront aussi noté qu'on a simplifié le contrôleurpost, en lui enlevant la responsabilité de chercher lui-même l'identifiant du billet dans la requête ! On préfère déplacer ce travail sur notre routeur. Chaque contrôleur (et donc chaque nouvelle fonctionnalité métier) sera ainsi plus facile à développer.
+Créez le routeur index.php
+
+Intéressons-nous maintenant à notre routeurindex.php:
+
+<?php
+
+
+require_once('src/controllers/homepage.php');
+
+require_once('src/controllers/post.php');
+
+
+if (isset($_GET['action']) && $_GET['action'] !== '') {
+
+    if ($_GET['action'] === 'post') {
+
+        if (isset($_GET['id']) && $_GET['id'] > 0) {
+
+            $identifier = $_GET['id'];
+
+
+            post($identifier);
+
+        } else {
+
+            echo 'Erreur : aucun identifiant de billet envoyé';
+
+
+            die;
+
+        }
+
+    } else {
+
+        echo "Erreur 404 : la page que vous recherchez n'existe pas.";
+
+    }
+
+} else {
+
+    homepage();
+
+}
+
+ Il a l'air un peu compliqué parce qu'on y fait pas mal de tests, mais le principe est tout simple : appeler le bon contrôleur. Ça donne :
+
+    On charge nos fichiers de contrôleurssrc/controllers/homepage.phpetsrc/controllers/post.php(pour que les fonctions soient en mémoire, quand même !).
+
+    On teste le paramètreactionpour savoir quel contrôleur appeler. Si le paramètre n'est pas présent, on charge le contrôleur de la page d'accueil contenant la liste des derniers billets (ligne 21).
+
+    On teste les différentes valeurs possibles pour notre paramètreactionet on redirige vers le bon contrôleur à chaque fois.
+
+Voilà qui commence à prendre forme ! 😁
+Exercez-vous
+
+Il nous reste une petite modification à faire pour que notre blog soit de nouveau utilisable. Vous avez deviné ?
+
+Eh oui, on a changé les URL auxquelles répondait notre application, mais on n'est pas encore repassé sur les liens de l'interface !
+
+Je vous encourage à essayer d'apporter cette modification par vous-même. Ça vous permettra de vérifier que vous maîtrisez votre nouveau système de routage.
+
+Le zip vous est disponible sur le Github. L'étiquette Git pour cette étape estcreez-routeur. Le code est visible sur Github à cette adresse.
+Récapitulons en vidéo
+
+Au final, on a apporté ensemble un bon nombre de changements. On a créé un dossier, déplacé du code entre plusieurs fichiers, supprimé d'anciens fichiers... Voici un screencast pour faire le point !
+En résumé
+
+    Le routeur est un composant du code qui a pour rôle de recevoir toutes les requêtes de l'application et de router chacune vers le bon contrôleur.
+
+    On préfère créer un fichier par contrôleur, tous rassemblés dans un même dossier. À l'intérieur, chaque fichier définit une fonction, qui sera appelée par le routeur.
+
+    Quand on fonctionne avec des fichiers PHP de type "bibliothèque de code", il faut utiliserrequire_oncepour éviter des plantages.

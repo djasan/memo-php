@@ -1,0 +1,132 @@
+l y a eu de nombreuses modifications au chapitre précédent. Vous pouvez toujours repartir du zip, téléchargeable depuis le Github, ou de l'étiquettecreez-template-page(accessible sur Github) si vous n'êtes pas certain de vos modifications !
+
+Essayons maintenant d'améliorer nos vues. Il y a du code qui se répète et, comme vous le savez, le code qui se répète... on n'aime pas ça !
+Incluez des blocs de page
+
+La première approche, que vous connaissez sûrement, consiste à créer des blocs de page dans des fichiers PHP différents. Par exemple :
+
+    header.php
+
+    footer.php
+
+Avec ça, nos vues n'auraient plus qu'à inclure (avec unincludeou unrequire) le header et le footer :
+
+<?php require('header.php'); ?>
+
+<h1>Le super blog de l'AVBN !</h1>
+
+<p>Contenu de la page</p>
+
+<?php require('footer.php'); ?>
+
+Alors oui, ça marche, mais il y a moyen de faire mieux et plus flexible. En effet, imaginez que le menu change un peu en fonction des pages par exemple. Comment vous faites, si ce menu se trouve dansheader.php?
+
+Ou le titre de la page dans la balise<title>? Vous n'y avez pas accès pour le personnaliser en fonction des pages ! A priori, tout ça est dansheader.php… que vous ne pouvez pas changer d'ici.
+
+Pour être plus flexible, il faut... inverser complètement notre approche. 🙃
+Créez un layout
+
+On va créer un layout (une disposition, traduit littéralement) de page. On va y retrouver toute la structure de la page, avec des "trous" à remplir.
+
+Attention à ne pas faire l'amalgame entre layout et template ! Un layout est une façon spécifique d'utiliser un template. Il sert à créer une disposition d'affichage. Dans un fichier layout, les "trous" à remplir seront très souvent comblés... par des templates !
+
+Voici notre fichiertemplates/layout.php:
+
+<!DOCTYPE html>
+
+<html>
+
+   <head>
+
+      <meta charset="utf-8" />
+
+      <title><?= $title ?></title>
+
+      <link href="style.css" rel="stylesheet" /> 
+
+   </head>
+
+
+   <body>
+
+      <?= $content ?>
+
+   </body>
+
+</html>
+
+Il y a 2 "trous" à remplir dans ce layout : le<title>et le contenu de la page.
+
+Évidemment, on pourrait faire plus compliqué si on voulait (par exemple, on pourrait réserver un espace pour personnaliser le menu). Mais vous voyez l'idée : vous créez la structure de votre page et vous remplissez les trous par des variables.
+
+Il faut maintenant définir ce qu'on met dans ces variables. Voici comment on peut le faire dans la vuetemplates/homepage.phpqui affiche la liste des derniers billets :
+
+<?php $title = "Le blog de l'AVBN"; ?>
+
+
+<?php ob_start(); ?>
+
+<h1>Le super blog de l'AVBN !</h1>
+
+<p>Derniers billets du blog :</p>
+
+
+<?php
+
+foreach ($posts as $post) {
+
+?>
+
+    <div class="news">
+
+        <h3>
+
+            <?= htmlspecialchars($post['title']); ?>
+
+            <em>le <?= $post['french_creation_date']; ?></em>
+
+        </h3>
+
+        <p>
+
+            <?= nl2br(htmlspecialchars($post['content'])); ?>
+
+            <br />
+
+            <em><a href="post.php?id=<?= urlencode($post['identifier']) ?>">Commentaires</a></em>
+
+        </p>
+
+    </div>
+
+<?php
+
+}
+
+?>
+
+<?php $content = ob_get_clean(); ?>
+
+
+<?php require('layout.php') ?>
+
+Ce code fait 3 choses :
+
+    Il définit le titre de la page dans$title. Celui-ci sera intégré dans la balise<title>dans le template.
+
+    Il définit le contenu de la page dans$content. Il sera intégré dans la balise<body>du template.
+    Comme ce contenu est un peu gros, on utilise une astuce pour le mettre dans une variable. On appelle la fonctionob_start()(ligne 3) qui "mémorise" toute la sortie HTML qui suit. Puis, à la fin, on récupère le contenu généré avecob_get_clean()(ligne 28) et on met le tout dans$content.
+
+    Enfin, il appelle le template avec un `require`. Celui-ci va récupérer les variables$titleet$contentqu'on vient de créer... pour afficher la page !
+
+À part l'astuce duob_start()etob_get_clean()(qui nous sert juste à mettre facilement beaucoup de code HTML dans une variable), le principe est simple. En inversant l'approche, on a un code bien plus flexible pour définir des "morceaux" de page dans des variables.
+Récapitulons en vidéo
+
+Je reprends ces quelques notions dans ce screencast. Si vous n'êtes pas sûr de bien comprendre l'utilisation deob_start(), c'est pour vous !
+En résumé
+
+    Un système de templates est un système où des morceaux de vue sont paramétrables.
+
+    On peut utiliser un template de "mise en page", appelé layout, pour factoriser le code HTML redondant.
+
+    Les fonctionsob_start()etob_get_clean()ne sont pas nécessaires, mais aident à implémenter un système de templates.

@@ -1,0 +1,318 @@
+Au final, on a réduit le nombre de connexions à la base de données à 1 par instance dePostRepository. C'est bien, mais on n'a pas encore atteint l'objectif qu'on s'était fixé. Par exemple, sur la page d'affichage d'un billet, on a une connexion SQL pour les billets et une autre pour les commentaires.
+
+Comment pourriez-vous faire pour permettre l'utilisation d'une seule connexion pour les deux modèles ? 🤔
+
+Je vous propose de continuer à travailler sur notrePostRepository, dans un premier temps. Une fois qu'on aura la possibilité de créer deux instances de cette classe, et que celles-ci partageront la même connexionPDO, alors vous appliquerez les changements au code modèle des commentaires.
+
+Avant de commencer à travailler, je vous invite à récupérer le code source à jour en zip depuis le Github ou avec l'étiquette Gittirez-parti-composition. Vous pouvez aussi les parcourir dans votre navigateur via l'interface Github.
+Initiez-vous à la composition
+
+Commençons par relire le code que nous avions danssrc/model/post.php:
+
+<?php
+
+
+class Post
+
+{
+
+    public string $title;
+
+    public string $frenchCreationDate;
+
+    public string $content;
+
+    public string $identifier;
+
+}
+
+
+class PostRepository
+
+{
+
+    public ?PDO $database = null;
+
+
+    public function getPost(string $identifier): Post
+
+    {
+
+        $this->dbConnect();
+
+        $statement = $this->database->prepare(
+
+            "SELECT id, title, content, DATE_FORMAT(creation_date, '%d/%m/%Y à %Hh%imin%ss') AS french_creation_date FROM posts WHERE id = ?"
+
+        );
+
+        $statement->execute([$identifier]);
+
+
+        $row = $statement->fetch();
+
+        $post = new Post();
+
+        $post->title = $row['title'];
+
+        $post->frenchCreationDate = $row['french_creation_date'];
+
+        $post->content = $row['content'];
+
+        $post->identifier = $row['id'];
+
+
+        return $post;
+
+    }
+
+
+    public function getPosts(): array
+
+    {
+
+        $this->dbConnect();
+
+        $statement = $this->database->query(
+
+            "SELECT id, title, content, DATE_FORMAT(creation_date, '%d/%m/%Y à %Hh%imin%ss') AS french_creation_date FROM posts ORDER BY creation_date DESC LIMIT 0, 5"
+
+        );
+
+        $posts = [];
+
+        while (($row = $statement->fetch())) {
+
+            $post = new Post();
+
+            $post->title = $row['title'];
+
+            $post->frenchCreationDate = $row['french_creation_date'];
+
+            $post->content = $row['content'];
+
+            $post->identifier = $row['id'];
+
+
+            $posts[] = $post;
+
+        }
+
+
+        return $posts;
+
+    }
+
+
+    public function dbConnect()
+
+    {
+
+        if ($this->database === null) {
+
+            $this->database = new PDO('mysql:host=localhost;dbname=blog;charset=utf8', 'blog', 'password');
+
+        }
+
+    }
+
+}
+
+Actuellement, si je change la valeur de la propriété$databased'une instance dePostRepository, ça ne modifiera pas la valeur de la propriété dans mes autres instances. C'est bien normal : on veut que chaque objet soit autonome et ait son propre contexte. C'était nos deux prérequis au chapitre précédent !
+
+Oui mais, on veut quand même que nos objets puissent utiliser la même connexion. On ne peut pas les obliger à avoir le même contexte ?
+
+Techniquement, c'est possible avec le mot-cléstatic. Je n'en parlerai pas ici, parce que c'est une pratique plutôt déconseillée. En plus, dès qu'on passera au modèle des commentaires, la problématique se posera à nouveau. Et à ce moment-là, avec deux classes différentes, ça sera réellement impossible que leurs instances partagent le même contexte.
+
+Non, ce qu'il nous faut, c'est composer avec des objets !
+
+La composition, c'est construire à partir d'un ou plusieurs tiers. Quand vous composez en musique, vous prenez des notes qui n'ont rien à voir entre elles et vous les arrangez vous-même les unes à côté des autres sur une partition. En programmation orientée objet, c'est pareil : vous prenez des objets qui n'ont rien à voir entre eux et vous les arrangez vous-même dans un nouvel objet.
+
+C'est un peu déjà ce qu'on fait avec notrePostRepositoryet l'objetPDOà l'intérieur, non ?
+
+Exactement, vous suivez bien ! Le gros problème actuellement, c'est que nous composons avec un objet qui n'a PAS la responsabilité d'initialiser automatiquement la connexion.
+
+Il nous faudrait un nouveau concept, donc une nouvelle classe. Elle représenterait une connexion avec la base de données, soit active, soit pas encore initialisée. On appellerait ça... la classeDatabaseConnection!
+
+Hum, vous n'êtes pas allé chercher bien loin là. 😑
+
+Eh oui, mais c'est un des gros avantages de la programmation orientée objet face à la programmation procédurale. En procédural, on ne peut définir que des fonctions, qui représentent des actions. En orienté objet, on peut définir des concepts, potentiellement associés à des actions. Il nous reste simplement à les nommer de manière compréhensible par les développeurs : en anglais !
+Créez la classeConnection
+
+Avant de créer cette classe, il faut qu'on discute rapidement d'où nous allons la mettre.
+
+Ce sont bien des sources PHP, donc le dossiersrc/semble le bon endroit. Par contre, je ne vais pas faire un contrôleur. Ce n'est pas vraiment du modèle non plus, d'ailleurs. Je n'ai pas d'autres dossiers pour le moment, j'en fais quoi ? 🤔
+
+En fait, c'est une nouvelle catégorie de code. C'est du code qu'on pourrait qualifier d'outillage. Il sert à résoudre des problématiques purement techniques : ici, maintenir une connexion à une base de données SQL. Pour ce projet, je vous propose de le mettre danssrc/lib/database.php:
+
+<?php
+
+
+class DatabaseConnection
+
+{
+
+    public ?PDO $database = null;
+
+
+    public function getConnection(): PDO
+
+    {
+
+        if ($this->database === null) {
+
+            $this->database = new PDO('mysql:host=localhost;dbname=blog;charset=utf8', 'blog', 'password');
+
+        }
+
+
+        return $this->database;
+
+    }
+
+}
+
+Encore une fois, rien de nouveau :
+
+    On crée la classeDatabaseConnection, qui encapsule la connexionPDOdans la propriété$database. 
+
+    Ensuite, on définit une méthodegetConnection(), qui renvoie forcément une instance dePDO. 
+
+    À l'intérieur de cette méthode, on initialise la connexion si elle ne l'est pas déjà. Et voilà !
+
+Le plus fort avec cette classe, c'est que si on veut établir une nouvelle connexion SQL, en parallèle de l'ancienne, on a simplement à instancier un nouvel objet. C'est la puissance de la composition : on est totalement en contrôle ! 🤩
+UtilisezPostRepositoryavecDatabaseConnection
+
+Bien, il nous reste maintenant à utiliser cette nouvelle classeDatabaseConnectionà l'intérieur de la classePostRepository. Attention, ça va impacter légèrement nos contrôleurs :
+
+<?php
+
+
+require_once('src/lib/database.php');
+
+
+// ...
+
+
+class PostRepository
+
+{
+
+    public DatabaseConnection $connection;
+
+
+    public function getPost(string $identifier): Post
+
+    {
+
+        $statement = $this->connection->getConnection()->prepare(
+
+            "SELECT id, title, content, DATE_FORMAT(creation_date, '%d/%m/%Y à %Hh%imin%ss') AS french_creation_date FROM posts WHERE id = ?"
+
+        );
+
+
+        // ...
+
+    }
+
+
+    public function getPosts(): array
+
+    {
+
+        $statement = $this->connection->getConnection()->query(
+
+            "SELECT id, title, content, DATE_FORMAT(creation_date, '%d/%m/%Y à %Hh%imin%ss') AS french_creation_date FROM posts ORDER BY creation_date DESC LIMIT 0, 5"
+
+        );
+
+
+        // ...
+
+    }
+
+}
+
+J'espère que vous aviez bien pensé à inclure le nouveau fichiersrc/lib/database.php. Pour le reste, il n'y a que 3 lignes qui changent :
+
+    public DatabaseConnection $connection: on remplace la propriété$databasepar la propriété$connectionde typeDatabaseConnection;
+
+    $statement = $this->connection->getConnection()->prepare(: on remplace l'accès à la propriété$databasepar l'appel de la méthodegetConnection()de la propriété$connection;
+
+    $statement = $this->connection->getConnection()->query(: on fait exactement la même chose !
+
+Voici le contenu de nos contrôleurssrc/controllers/homepage.phpetsrc/controllers/post.phplorsqu'ils utilisent la nouvelle forme de la classePostRepository:
+
+<?php
+
+// src/controllers/homepage.php
+
+
+require_once('src/lib/database.php');
+
+require_once('src/model/post.php');
+
+
+function homepage()
+
+{
+
+    $postRepository = new PostRepository();
+
+    $postRepository->connection = new DatabaseConnection();
+
+    $posts = $postRepository->getPosts();
+
+
+    require('templates/homepage.php');
+
+}
+
+<?php
+
+// src/controllers/post.php
+
+
+require_once('src/lib/database.php');
+
+require_once('src/model/comment.php');
+
+require_once('src/model/post.php');
+
+
+function post(string $identifier)
+
+{
+
+    $postRepository = new PostRepository();
+
+    $postRepository->connection = new DatabaseConnection();
+
+    $post = $postRepository->getPost($identifier);
+
+    $comments = getComments($identifier);
+
+
+    require('templates/post.php');
+
+}
+
+Vous commencez à voir que quand on modifie du code, c'est de plus en plus des changements de nom de variable, des accès à d'autres propriétés... C'est un des gros avantages de la POO : il y a un aspect jeu de briques, qu'on empile, dépile et ré-empile, pour que notre application prenne la forme qu'on souhaite. Finalement, il n'y a que lorsqu'il nous manque un modèle de brique qu'on doit la coder !
+Récapitulons en vidéo
+
+Entre la création de la nouvelle classeDatabaseConnection, l'amélioration du modèle des billets et la mise à jour des contrôleurs utilisant tout ça... C'est beaucoup de changements pour ce chapitre, finalement. Je vais reprendre les modifications importantes dans ce screencast, n'hésitez pas à le suivre !
+Exercez-vous
+
+On a utilisé ensemble la composition d'objets pour permettre à deux instances différentes dePostRepositoryd'utiliser la même connexionPDO, et c'était le point difficile.
+
+C'est maintenant à votre tour de refactoriser le modèle des commentaires, pour qu'il utilise la nouvelle classeDatabaseConnection. Une fois que vous aurez réussi, il n'y aura plus qu'une seule connexion au serveur SQL dans votre contrôleursrc/controllers/post.php. Et n'oubliez pas la fonctionnalité d'ajout de commentaire ! 😁
+
+Rendez-vous au prochain chapitre pour comparer votre code avec celui du dépôt Github !
+En résumé
+
+    La composition en programmation orientée objet, c'est utiliser des objets comme propriétés à l'intérieur d'autres classes.
+
+    La composition, quand elle est utilisée entre objets possédant des méthodes, permet de déléguer des responsabilités de la classe composée vers la classe composante.
+
+    La composition permet de rester en contrôle permanent de son code. Elle permet de facilement re-responsabiliser n'importe quelle partie du code, à n'importe quel moment.

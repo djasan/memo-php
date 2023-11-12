@@ -1,0 +1,351 @@
+C'est parti pour cette nouvelle partie de cours, dédiée à la Programmation Orientée Objet, appliquée au patron de conception MVC !
+
+Oh non, pas la Programmation Orientée Objet ! À ce qu'il paraît, c'est compliqué. Mon cousin Mickaël m'a tout raconté, ces histoires d'objets, de classes, d'héritage... Est-ce qu'on est vraiment obligé d'en passer par là ?
+
+J'ai deux choses à vous répondre. D'une part, si vous souhaitez appréhender la Programmation Orientée Objet (vous pouvez l'abréger POO), je vous conseille le super cours que nos formateurs lui ont dédié : Programmez en orienté objet en PHP. Il part vraiment de zéro et explique toutes les notions que vous devez connaître étape par étape. Si vous avez déjà quelques notions en POO, mais que vous êtes toujours un peu fébriles quand vous rencontrez desnew PostManager()ou des héritages, alors la suite va vous plaire.
+
+Voilà mon second point : ce cours ne va PAS aborder la Programmation Orientée Objet comme une finalité. Déjà, vous pouvez considérer qu'avec moi, LA POO n'existe pas. Il y a une quantité infinie de manières d'utiliser la modélisation Objet. Ici, vous allez simplement améliorer votre code avec les outils que vous propose PHP, le langage de programmation que vous utilisez !
+
+Vous trouverez le zip du cours sur le Github. Récupérez le code avec l'étiquettestructurez-donnees, pour que nous partions de la même base. Vous pouvez aussi voir les sources actuelles via l'interface Github.
+Analysez les interactions entre les couches du MVC
+
+Quand on utilise le design pattern MVC, on sépare notre code en trois couches : le modèle, la vue et le contrôleur. Pour chaque requête HTTP venant de l'utilisateur, des morceaux de code de chacune des couches vont interagir ensemble pour réaliser l'ensemble du travail de génération de la réponse. Normalement, jusque ici, vous maîtrisez ! 😊
+
+Par exemple, en ouvrant votre contrôleursrc/controllers/homepage.php, vous pouvez analyser les interactions entre ces couches :
+
+<?php
+
+
+require_once('src/model.php');
+
+
+function homepage()
+
+{
+
+    $posts = getPosts();
+
+
+    require('templates/homepage.php');
+
+}
+
+Elles sont d'ailleurs plus ou moins explicites et, par conséquent, plus ou moins évidentes à remarquer. Ici, il y en a 2 :
+
+    À la ligne 7, le résultat de la fonctiongetPosts(), mise à disposition par le modèle, est récupéré par le contrôleur. C'est la première interaction et elle est explicite.
+
+    À la ligne 9, l'utilisation de l'instructionrequireimplique la seconde interaction, entre le contrôleur et la vue. Celle-là est implicite, vous la voyez ? Eh oui, la variable$postsest rendue disponible à l'usage à l'intérieur du fichiertemplates/homepage.php.
+
+Avec beaucoup de mémoire, vous vous souvenez peut-être d'une de mes déclarations durant ce cours : avec le MVC, le développeur qui implémente la vue n'a pas besoin de connaître le détail de l'implémentation du modèle. Il a simplement besoin de savoir comment utiliser la valeur de retour.
+
+Pour l'instant, dans notre code, ce protocole de communication entre nos couches est défini par... de la documentation orale ! Or, la documentation est sujette à un risque majeur : sa péremption.
+Utilisez du code pour définir vos protocoles
+
+En programmation, il y a une maxime qui dit :
+
+    La documentation la plus précise pour une application, c'est son code source !
+
+Et si vous pouviez produire du code qui définisse lui-même sa documentation ? Ça serait fantastique : plus besoin d'aller fouiller dans le code des autres pour comprendre ce qu'on peut en faire ! 😍
+
+Les plus malins d'entre vous auront noté que vous le faites déjà, à un certain niveau. Par exemple danssrc/model/comment.php, que voyez-vous à la troisième ligne ?
+
+<?php
+
+
+// ...
+
+function getComments(string $post)
+
+// ...
+
+Le prototype de la fonctiongetCommentsindique que son premier paramètre ($post) doit être de typestring(une chaîne de caractères). Et que se passe-t-il si un développeur essaye de passer une variable de typeint(un nombre entier) en paramètre ? C'est directement PHP qui lui dit que c'est impossible. Puissant !
+
+D'accord, on arrive à le faire avec des cas simples. Mais, dans la vraie vie, les demandes de mes clients sont rarement aussi simples... Rien que pour définir un commentaire sur un billet, on avait au moins 3 variables !
+
+C'est sûr, il nous faut encore plus fort. Dans votre code, vous aviez représenté vos commentaires en les composant de trois variables aux types plus simples fournis par PHP : 
+
+    l'auteur, une chaîne de caractèresstring;
+
+    la date, une chaîne de caractèresstring;
+
+    le commentaire, encore une chaîne de caractèresstring.
+
+Et si on pouvait créer notre propre type, qui serait composé de plusieurs sous-types ? On pourrait représenter tout ce qu'on veut après ! 🤩
+
+C'est exactement ça, vous comprenez vite ! Et chaque variable ayant votre type serait validée par PHP, pour qu'elle contienne uniquement les éléments attendus. Je vous propose de vous lancer directement dans le code qui va définir ce type en PHP :
+
+<?php
+
+
+class Comment {}
+
+Et voilà, vous avez défini un nouveau type ! En PHP, on appelle ça une classe. Et chacune a un nom unique. Ici, c'est la classeComment(les noms de classes, comme tout notre code, doivent être en anglais).
+
+Ok, mais comment je fais pour créer une variable avec ce type ?
+
+<?php
+
+ 
+
+class Comment {}
+
+ 
+
+$comment = new Comment();
+
+ Avec ce code, vous créez une nouvelle instance de commentaire. C'est ce qu'on appelle instancier une classe. Pour le faire en PHP, vous utilisez l'instructionnew, suivi du nom de votre classe. 
+
+Vous avez déjà rencontré le mot-clénew, vous vous souvenez ? Ouvrez votre fichiersrc/model.phpet regardez la fonctiondbConnect(): il y a$database = new PDO(), qui sert à instancier une nouvelle connexion à la base de données !
+
+Cette instance s'appelle un objet (comme dans "Programmation Orientée Objet") et vous l'assignez dans votre variable$comment. On dit aussi que la variable$comment est de typeComment. 
+
+Bon, pour l'instant ce commentaire ne sert pas à grand-chose, étant donné qu'il est vide...
+
+C'est le moment d'ajouter des propriétés à votre classe. Ce sont les éléments qui composent votre classe. Chaque propriété aura son propre type. Pour ça, vous allez écrire des nouvelles définitions de propriétés, à l'intérieur du bloc d'accolades qui décrit votre classe  :
+
+<?php
+
+ 
+
+class Comment
+
+{
+
+    public string $author;
+
+    public string $frenchCreationDate;
+
+    public string $comment;
+
+}
+
+ 
+
+$comment = new Comment();
+
+Votre classe est désormais composée des trois "sous-variables" voulues :
+
+    l'auteur ;
+
+    la date de création ;
+
+    le commentaire. 
+
+Vous avez remarqué le mot-clépublic, devant chaque propriété ? Il est essentiel pour indiquer que la propriété sera visible par le code utilisant la classe. Nous n'étudierons pas la notion de visibilité dans ce cours, mais sachez qu'il y a deux autres alternatives :privateetprotected(en français, privé et protégé).
+
+En tant que développeur, en lisant simplement le code de cette classe, vous êtes certains de savoir ce qu'elle va contenir. Et PHP couvre vos arrières, en vous assurant tout le temps que c'est bien le cas. Vous avez mieux qu'une documentation : vous avez un code strict ! Félicitations !
+
+Je vous propose de suivre ce screencast pour revoir, ensemble, les étapes de la création d'une classe, de la définition de ses propriétés, et de son instanciation. C'est un sujet complexe, alors soyez sûr de bien le comprendre !
+
+Attendez, attendez ! Ne me laissez pas comme ça, je ne sais même pas comment je dois faire pour utiliser cette classe. Vous n'avez pas des informations en plus à me donner ?
+
+Pas d'inquiétude, j'y viens tout de suite. 😁
+Utilisez votre nouveau typeComment
+
+Les propriétés d'un objet sont accessibles via une nouvelle syntaxe : l'opérateur flèche->, suivi du nom de la propriété à laquelle vous accédez. Ainsi, pour renseigner la date de création d'un commentaire, vous allez faire :
+
+<?php
+
+ 
+
+class Comment
+
+{
+
+    public string $author;
+
+    public string $frenchCreationDate;
+
+    public string $comment;
+
+}
+
+ 
+
+$comment = new Comment();
+
+$comment->frenchCreationDate = '10/03/2022 à 15h09';
+
+Bien entendu, l'opérateur flèche fonctionne aussi pour l'accès en lecture à des propriétés. D'ailleurs, on va le voir tout de suite.
+
+Vous allez modifier le fichiersrc/model/comment.php pour que la fonctiongetComments()construise et renvoie un tableau d'objetsComment. Je vous laisse essayer de votre côté et on corrige ensemble ensuite !
+
+…
+
+…
+
+…
+
+Alors, ça a donné quelque chose ? Voyons voir le code que je vous propose :
+
+<?php
+
+// src/model/comment.php
+
+
+class Comment
+
+{
+
+    public string $author;
+
+    public string $frenchCreationDate;
+
+    public string $comment;
+
+}
+
+
+function getComments(string $post): array
+
+{
+
+    $database = commentDbConnect();
+
+    $statement = $database->prepare(
+
+        "SELECT id, author, comment, DATE_FORMAT(comment_date, '%d/%m/%Y à %Hh%imin%ss') AS french_creation_date FROM comments WHERE post_id = ? ORDER BY comment_date DESC"
+
+    );
+
+    $statement->execute([$post]);
+
+
+    $comments = [];
+
+    while (($row = $statement->fetch())) {
+
+        $comment = new Comment();
+
+        $comment->author = $row['author'];
+
+        $comment->frenchCreationDate = $row['french_creation_date'];
+
+        $comment->comment = $row['comment'];
+
+
+        $comments[] = $comment;
+
+    }
+
+
+    return $comments;
+
+}
+
+
+// ...
+
+On a ajouté la déclaration de la classeCommenten haut du fichier. Dans notre bouclewhile, pour chaque ligne de résultat SQL, on a instancié un nouvel objet de typeComment. Enfin, on a renseigné la valeur de chacune des propriétés.
+
+J'en ai profité pour rajouter un type de retourarrayau prototype de la fonctiongetComments. Ça ne change pas grand chose, mais c'est plus strict. Vous voyez pour l'occasion qu'en PHP, il est impossible de mieux typer que ça un tableau d’objets. C'est une des limites actuelles du langage, que vous continuerez à combler par de la documentation !
+
+Passons à la modification du templatetemplates/post.php, qui reçoit maintenant des objets à la place de tableaux indexés :
+
+<!-- templates/post.php -->
+
+
+<?php $title = "Le blog de l'AVBN"; ?>
+
+
+<?php ob_start(); ?>
+
+<h1>Le super blog de l'AVBN !</h1>
+
+<p><a href="index.php">Retour à la liste des billets</a></p>
+
+
+<div class="news">
+
+    <h3>
+
+        <?= htmlspecialchars($post['title']) ?>
+
+        <em>le <?= $post['french_creation_date'] ?></em>
+
+    </h3>
+
+
+    <p>
+
+        <?= nl2br(htmlspecialchars($post['content'])) ?>
+
+    </p>
+
+</div>
+
+
+<h2>Commentaires</h2>
+
+
+<form action="index.php?action=addComment&id=<?= $post['identifier'] ?>" method="post">
+
+   <div>
+
+    <label for="author">Auteur</label><br />
+
+    <input type="text" id="author" name="author" />
+
+   </div>
+
+   <div>
+
+    <label for="comment">Commentaire</label><br />
+
+    <textarea id="comment" name="comment"></textarea>
+
+   </div>
+
+   <div>
+
+    <input type="submit" />
+
+   </div>
+
+</form>
+
+
+<?php
+
+foreach ($comments as $comment) {
+
+?>
+
+    <p><strong><?= htmlspecialchars($comment->author) ?></strong> le <?= $comment->frenchCreationDate ?></p>
+
+    <p><?= nl2br(htmlspecialchars($comment->comment)) ?></p>
+
+<?php
+
+}
+
+?>
+
+<?php $content = ob_get_clean(); ?>
+
+
+<?php require('layout.php') ?>
+
+Il n'y a que 2 lignes qui ont changé, à l'intérieur duforeach. On a juste remplacé la syntaxe d'accès aux index d'un tableau ($array['index']) par celle d'accès aux propriétés d'un objet ($object->property).
+
+Je vous résume cette partie dans un screencast ? C'est parti pour revoir comment utiliser un objet et ses propriétés en PHP.
+Exercez-vous
+
+Bien, on a réussi à faire ça ensemble pour les commentaires. Et si vous vous lanciez dans la modification des billets en suivant le même schéma ?
+
+Ah et, en passant, profitez-en pour déplacer le modèle des billets dans un fichier rien qu'à lui, commesrc/model/post.php!
+
+Vous pourrez comparer votre code à celui du dépôt Github du début du prochain chapitre et voir si vous n'avez rien oublié.
+
+C'est bon, vous êtes maintenant "programmeurs orientés objet", toutes mes félicitations. C'est parti pour le quiz ! 😁
+En résumé
+
+    Le patron de conception MVC utilise 3 couches de code. Les interactions entre chacune des couches doivent être structurées et documentées le mieux possible, pour faciliter la maintenance du code dans son ensemble.
+
+    En créant vos propres types grâce aux classes, vous saurez exactement ce qu'ils vont faire. Le code strict est une excellente manière de structurer son code. Il permet aussi à PHP d'aider les développeurs, en faisant des vérifications automatiques en amont.
+
+    On peut créer des types personnalisés en PHP, grâce aux classes. Chaque classe doit avoir un nom unique. Chaque classe sera composée avec des propriétés ayant d'autres types (simples ou personnalisés).
+
+    L'action de créer des variables à partir de ces types personnalisés s'appelle "instancier une classe". On appelle ces instances des "objets".
+
+    Les propriétés d'un objet peuvent être obtenues grâce à l'opérateur flèche->. Cet opérateur s'utilise aussi bien pour lire la valeur d'une propriété que pour y écrire une nouvelle valeur.

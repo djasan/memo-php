@@ -1,0 +1,526 @@
+Ça y est, on vient de vous demander une nouvelle fonctionnalité ! On aimerait pouvoir afficher une page avec les commentaires de chaque billet.
+
+Vous vous souvenez du lien "Commentaires" sous chaque billet ?
+Les liens Commentaires en bas des postes du blog ne fonctionnent pas.
+Il est temps de faire marcher ce lien "Commentaires" !
+
+Lorsqu'on clique dessus, on va afficher une page avec le billet et sa liste de commentaires.
+
+Hum, mais comment s'y prendre avec une architecture MVC ? 🤔
+
+Je vous propose le plan suivant pour arriver à vos fins :
+
+    Vous commencez par écrire la vue. Après tout, votre objectif principal reste d'afficher la page des commentaires à l'utilisateur !
+
+    Ensuite, vous allez écrire un contrôleur, mais en version très rapide, qui fera passer des fausses données à la vue. Ça vous permettra de vérifier que votre affichage correspond à vos attentes.
+
+    Vous affinerez le contrôleur en le rendant dynamique et en commençant à imaginer les services que vous souhaiteriez demander à votre modèle.
+
+    Vous finirez en implémentant votre modèle, pour qu'il réponde correctement aux demandes de votre contrôleur.
+
+Ce n'est pas la seule manière de faire, mais avec celle-là on rentre dans le lard du problème par le côté concret. C'est ma méthode préférée ! 😊
+
+Vous pouvez récupérer une base de travail :
+
+    en téléchargeant le zip sur le Github ;
+
+    en utilisant l'étiquette Gitaffichez-commentaires;
+
+    ou en suivant ce lien Github. 
+
+Si vous êtes confiant, lancez-vous ! Et revenez comparer votre code au cours quand vous aurez terminé !
+Créez la vue
+
+Qui dit nouvelle vue, dit nouveau fichier dans notre dossiertemplates/. On veut afficher un article de blog, alors nous pouvons l'appelertemplates/post.php.
+
+<!DOCTYPE html>
+
+<html>
+
+    <head>
+
+        <meta charset="utf-8" />
+
+        <title>Le blog de l'AVBN</title>
+
+        <link href="style.css" rel="stylesheet" />
+
+    </head>
+
+ 
+
+    <body>
+
+        <h1>Le super blog de l'AVBN !</h1>
+
+        <p><a href="index.php">Retour à la liste des billets</a></p>
+
+
+        <div class="news">
+
+            <h3>
+
+                <?= htmlspecialchars($post['title']) ?>
+
+                <em>le <?= $post['french_creation_date'] ?></em>
+
+            </h3>
+
+ 
+
+            <p>
+
+                <?= nl2br(htmlspecialchars($post['content'])) ?>
+
+            </p>
+
+        </div>
+
+ 
+
+        <h2>Commentaires</h2>
+
+ 
+
+        <?php
+
+        foreach ($comments as $comment) {
+
+        ?>
+
+        <p><strong><?= htmlspecialchars($comment['author']) ?></strong> le <?= $comment['french_creation_date'] ?></p>
+
+        <p><?= nl2br(htmlspecialchars($comment['comment'])) ?></p>
+
+        <?php
+
+        }
+
+        ?>
+
+    </body>
+
+</html>
+
+Dans cette vue, on affiche :
+
+    le billet : on utilise une variable tableau$post, avec les indextitle,french_creation_dateetcontent;
+
+    les commentaires : un tableau de tableaux, avec les indexauthor,french_creation_dateetcomment. 
+
+Pour l'instant, on ne peut pas encore tester notre code HTML. Il nous faut un contrôleur !
+Créez le contrôleur "simplet"
+
+Nous avions déjà écrit un contrôleurindex.phppour gérer la liste des derniers billets. Je vous propose d'écrire un autre contrôleurpost.phpqui affiche un post et ses commentaires.
+
+<?php
+
+ 
+
+$post = [
+
+    'title' => 'Un faux titre.',
+
+    'french_creation_date' => '03/03/2022 à 12h14min42s',
+
+    'content' => "Le faux contenu de mon billet.\nC'est fantastique !",
+
+];
+
+$comments = [
+
+    [
+
+        'author' => 'Un premier faux auteur',
+
+        'french_creation_date' => '03/03/2022 à 12h15min42s',
+
+        'comment' => 'Un faux commentaire.\n Le premier.',
+
+    ],
+
+    [
+
+        'author' => 'Un second faux auteur',
+
+        'french_creation_date' => '03/03/2022 à 12h16min42s',
+
+        'comment' => 'Un faux commentaire.\n Le second.',
+
+    ],
+
+];
+
+ 
+
+require('templates/post.php');
+
+Mais, qu'est-ce que vous avez fait ?! Il est étrange votre contrôleur. Et il n'inclut même pas le modèle !
+
+Je vous en avais parlé : dans un premier temps, je cherche seulement à tester que mon affichage correspond à mes attentes. Vous n'avez pas encore besoin de données dynamiques à ce stade et ça ne vous coûte presque pas de temps de créer ces variables manuellement. Maintenant, si vous allez sur la page/post.phpdans votre navigateur, vous pouvez vérifier : votre page de billet affiche bien l'article, suivi des commentaires !
+La page de l'article affiche avec quelques commentaires !
+Cette page est magnifique, même si elle contient de fausses données !
+Dynamisez le contrôleur
+
+Notre prochaine étape, c'est de faire en sorte que notre contrôleur soit encore plus puissant ! (Pas difficile, vu ce qu'on a fait pour le moment).
+
+Déjà, on veut qu'il prenne en paramètre un billet précis. Il va falloir modifier les liens présents sur la page d'accueiltemplates/homepage.php, à la ligne 24, pour y renseigner notre nouvelle URL. On choisit d'utiliser le paramètre GET intituléidpour faire passer l'information à notre nouveau contrôleur.
+
+<!-- templates/homepage.php:24 -->
+
+ 
+
+<em><a href="post.php?id=<?= urlencode($post['identifier']) ?>">Commentaires</a></em>
+
+On a besoin d'une nouvelle propriétéidentifierau niveau de chaque$postde notre page d'accueil. Et on va directement demander à notre modèle de nous la donner :
+
+<?php
+
+// src/model.php:15
+
+ 
+
+$post = [
+
+    'title' => $row['title'],
+
+    'french_creation_date' => $row['french_creation_date'],
+
+    'content' => $row['content'],
+
+    'identifier' => $row['id'],
+
+];
+
+Quand vous cliquez sur les liens "Commentaires" de la page d'accueil, vous accédez dorénavant à votre nouvelle page !
+
+Modifions maintenant le contrôleurpost.phppour prendre en compte ce paramètre GET :
+
+<?php
+
+// post.php
+
+ 
+
+require('src/model.php');
+
+ 
+
+if (isset($_GET['id']) && $_GET['id'] > 0) {
+
+    $identifier = $_GET['id'];
+
+} else {
+
+    echo 'Erreur : aucun identifiant de billet envoyé';
+
+ 
+
+    die;
+
+}
+
+
+$post = getPost($identifier);
+
+$comments = getComments($identifier);
+
+
+require('templates/post.php');
+
+Il fait un test, un contrôle : il vérifie qu'on a bien reçu en paramètre un id dans l'URL ($_GET['id']).
+
+Ensuite, il appelle les 2 fonctions du modèle dont on va avoir besoin :getPostetgetComment. On récupère ça dans nos deux variables. Bien sûr, on attend du modèle qu'il nous renvoie les mêmes propriétés que celles qu'on avait définies :
+
+    title,french_creation_dateetcontentpour les billets ;
+
+    author,french_creation_dateetcommentpour les commentaires.
+
+Si vous testiez votre code tout de suite, il ne fonctionnerait plus. On a demandé de l'aide au modèle, mais on n'a pas encore implémenté ces fonctions !
+Mettez à jour le modèle
+
+Tout d'abord, ajoutons une table pour gérer les commentaires dans la base. Elle aura cette structure :
+La structure de la table comments
+La structure de la table comments
+
+Si vous avez récupéré la bonne étiquette Git, vous pouvez supprimer le contenu de votre base de données et rejouer le fichierdb.sqlpour avoir directement tout à jour. Sinon, ajoutez-la dans votre base de données manuellement (en passant par phpMyAdmin par exemple).
+
+Maintenant, concentrons-nous sur le code du modèle. Pour l'instant, notre fichiersrc/model.phpne contient qu'une seule fonctiongetPostsqui récupère tous les derniers posts de blog.
+
+On va écrire 2 nouvelles fonctions :
+
+    getPost(au singulier !), qui récupère un post précis en fonction de son ID ;
+
+    getComments, qui récupère les commentaires associés à un ID de post.
+
+Cela donne :
+
+<?php
+
+// src/model.php
+
+
+function getPosts()
+
+{
+
+    // ... (déjà écrite)
+
+}
+
+
+function getPost($identifier) {
+
+    try {
+
+        $database = new PDO('mysql:host=localhost;dbname=blog;charset=utf8', 'blog', 'password');
+
+    } catch(Exception $e) {
+
+        die('Erreur : '.$e->getMessage());
+
+    }
+
+ 
+
+    $statement = $database->prepare(
+
+        "SELECT id, title, content, DATE_FORMAT(creation_date, '%d/%m/%Y à %Hh%imin%ss') AS french_creation_date FROM posts WHERE id = ?"
+
+    );
+
+    $statement->execute([$identifier]);
+
+ 
+
+    $row = $statement->fetch();
+
+    $post = [
+
+        'title' => $row['title'],
+
+        'french_creation_date' => $row['french_creation_date'],
+
+        'content' => $row['content'],
+
+    ];
+
+ 
+
+    return $post;
+
+}
+
+
+function getComments($identifier)
+
+{
+
+    try {
+
+        $database = new PDO('mysql:host=localhost;dbname=blog;charset=utf8', 'blog', 'password');
+
+    } catch(Exception $e) {
+
+        die('Erreur : '.$e->getMessage());
+
+    }
+
+ 
+
+    $statement = $database->prepare(
+
+        "SELECT id, author, comment, DATE_FORMAT(comment_date, '%d/%m/%Y à %Hh%imin%ss') AS french_creation_date FROM comments WHERE post_id = ? ORDER BY comment_date DESC"
+
+    );
+
+    $statement->execute([$identifier]);
+
+ 
+
+    $comments = [];
+
+    while (($row = $statement->fetch())) {
+
+        $comment = [
+
+            'author' => $row['author'],
+
+            'french_creation_date' => $row['french_creation_date'],
+
+            'comment' => $row['comment'],
+
+        ];
+
+        $comments[] = $comment;
+
+    }
+
+
+    return $comments;
+
+}
+
+Ces deux nouvelles fonctions prennent un paramètre : l'identifiant du billet qu'on recherche. Cela nous permet notamment de ne sélectionner que les commentaires liés au post concerné.
+
+Hum, mais il y a quelque chose qui me dérange ici. 🤔
+
+Je n'aime pas voir du code se répéter. C'est le cas en particulier de la connexion à la base de données avec les blocs try/catch. Allez, on va factoriser ça !
+
+Je vous propose tout simplement de créer une fonctiondbConnect()qui va renvoyer la connexion à la base de données. Je l'ajoute à la fin du fichier :
+
+<?php
+
+// src/model.php
+
+
+function getPosts() {
+
+    $database = dbConnect();
+
+    $statement = $database->query(
+
+        "SELECT id, title, content, DATE_FORMAT(creation_date, '%d/%m/%Y à %Hh%imin%ss') AS french_creation_date FROM posts ORDER BY creation_date DESC LIMIT 0, 5"
+
+    );
+
+    $posts = [];
+
+    while (($row = $statement->fetch())) {
+
+        $post = [
+
+            'title' => $row['title'],
+
+            'french_creation_date' => $row['french_creation_date'],
+
+            'content' => $row['content'],
+
+            'identifier' => $row['id'],
+
+        ];
+
+
+        $posts[] = $post;
+
+    }
+
+
+    return $posts;
+
+}
+
+
+function getPost($identifier) {
+
+    $database = dbConnect();
+
+    $statement = $database->prepare(
+
+        "SELECT id, title, content, DATE_FORMAT(creation_date, '%d/%m/%Y à %Hh%imin%ss') AS french_creation_date FROM posts WHERE id = ?"
+
+    );
+
+    $statement->execute([$identifier]);
+
+
+    $row = $statement->fetch();
+
+    $post = [
+
+        'title' => $row['title'],
+
+        'french_creation_date' => $row['french_creation_date'],
+
+        'content' => $row['content'],
+
+    ];
+
+
+    return $post;
+
+}
+
+
+function getComments($identifier)
+
+{
+
+    $database = dbConnect();
+
+    $statement = $database->prepare(
+
+        "SELECT id, author, comment, DATE_FORMAT(comment_date, '%d/%m/%Y à %Hh%imin%ss') AS french_creation_date FROM comments WHERE post_id = ? ORDER BY comment_date DESC"
+
+    );
+
+    $statement->execute([$identifier]);
+
+
+    $comments = [];
+
+    while (($row = $statement->fetch())) {
+
+        $comment = [
+
+            'author' => $row['author'],
+
+            'french_creation_date' => $row['french_creation_date'],
+
+            'comment' => $row['comment'],
+
+        ];
+
+
+        $comments[] = $comment;
+
+    }
+
+
+    return $comments;
+
+}
+
+
+// Nouvelle fonction qui nous permet d'éviter de répéter du code
+
+function dbConnect()
+
+{
+
+    try {
+
+        $database = new PDO('mysql:host=localhost;dbname=blog;charset=utf8', 'blog', 'password');
+
+
+        return $database;
+
+    } catch(Exception $e) {
+
+        die('Erreur : '.$e->getMessage());
+
+    }
+
+}
+
+Ah, c'est tout bête, mais je me sens déjà un peu mieux. 😅
+
+En fait, c'est encore améliorable car actuellement on fait une connexion à la base de données pour chaque nouvelle requête. Mais ne nous précipitons pas et sachons déjà apprécier le code qu'on a sous les yeux. On pourra toujours l'améliorer plus tard. 😊
+
+Testez, ça doit fonctionner !
+Récapitulons en vidéo
+
+Qu'il reste encore quelques soucis ou que vous souhaitiez juste être sûr d'avoir bien compris certains points, je vous conseille de regarder ce screencast, qui reprend point par point toutes les modifications qu'il faut apporter à votre projet durant ce chapitre.
+En résumé
+
+Nous avons maintenant les fichiers suivants :
+
+    src/model.php: le modèle, qui contient différentes fonctions pour récupérer des informations dans la base.
+
+    index.php: le contrôleur de la page d'accueil. Il fait le lien entre le modèle et la vue.
+
+    templates/homepage.php: la vue de la page d'accueil. Elle affiche la page.
+
+    post.php: le contrôleur d'un billet et ses commentaires. Il fait le lien entre le modèle et la vue.
+
+    templates/post.php: la vue d'un billet et ses commentaires. Elle affiche la page.

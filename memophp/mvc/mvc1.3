@@ -1,0 +1,188 @@
+Notre code est déjà beaucoup mieux, mais nous pouvons aller un cran plus loin. Nous allons séparer complètement l'accès aux données (tout le traitement SQL) dans un fichier spécifique.
+
+Nous allons avoir 3 fichiers :
+
+    src/model.php: se connecte à la base de données et récupère les billets.
+
+    templates/homepage.php: affiche la page. Ce fichier ne va pas changer du tout.
+
+    index.php: fait le lien entre le modèle et l'affichage (oui, juste ça !).
+
+On y reviendra, mais sachez que ces 3 fichiers forment la base d'une structure MVC (Modèle - Vue - Contrôleur) :
+
+    Le modèle traite les données (src/model.php).
+
+    La vue affiche les informations (templates/homepage.php).
+
+    Le contrôleur fait le lien entre les deux (index.php).
+
+src/model.php
+
+Notre nouveau fichiersrc/model.phpcontient une fonctiongetPosts()qui renvoie la liste des billets :
+
+<?php
+
+
+function getPosts() {
+
+    // We connect to the database.
+
+    try {
+
+        $database = new PDO('mysql:host=localhost;dbname=blog;charset=utf8', 'blog', 'password');
+
+    } catch(Exception $e) {
+
+        die('Erreur : '.$e->getMessage());
+
+    }
+
+
+    // We retrieve the 5 last blog posts.
+
+    $statement = $database->query(
+
+        "SELECT id, titre, contenu, DATE_FORMAT(date_creation, '%d/%m/%Y à %Hh%imin%ss') AS date_creation_fr FROM billets ORDER BY date_creation DESC LIMIT 0, 5"
+
+    );
+
+    $posts = [];
+
+    while (($row = $statement->fetch())) {
+
+        $post = [
+
+            'title' => $row['titre'],
+
+            'french_creation_date' => $row['date_creation_fr'],
+
+            'content' => $row['contenu'],
+
+        ];
+
+
+        $posts[] = $post;
+
+    }
+
+
+    return $posts;
+
+}
+
+
+?>
+
+templates/homepage.php
+
+L'affichage n'a pas du tout changé. Je vous remets le code ici, mais il n'y a aucune différence par rapport au chapitre précédent :
+
+<!DOCTYPE html>
+
+<html>
+
+    <head>
+
+        <meta charset="utf-8" />
+
+        <title>Le blog de l'AVBN</title>
+
+        <link href="style.css" rel="stylesheet" />
+
+    </head>
+
+
+    <body>
+
+        <h1>Le super blog de l'AVBN !</h1>
+
+        <p>Derniers billets du blog :</p>
+
+
+        <?php
+
+        foreach ($posts as $post) {
+
+        ?>
+
+            <div class="news">
+
+                <h3>
+
+                    <?php echo htmlspecialchars($post['title']); ?>
+
+                    <em>le <?php echo $post['french_creation_date']; ?></em>
+
+                </h3>
+
+                <p>
+
+                    <?php
+
+                    // We display the post content.
+
+                    echo nl2br(htmlspecialchars($post['content']));
+
+                    ?>
+
+                    <br />
+
+                    <em><a href="#">Commentaires</a></em>
+
+                </p>
+
+            </div>
+
+        <?php
+
+        } // The end of the posts loop.
+
+        ?>
+
+    </body>
+
+</html>
+
+index.php
+
+La nouveauté, c'est désormais l'index (aussi appelé le contrôleur) qui sert d'intermédiaire entre le modèle et la vue :
+
+<?php
+
+
+require('src/model.php');
+
+
+$posts = getPosts();
+
+
+require('templates/homepage.php');
+
+?>
+
+3 lignes, 3 étapes toutes simples :
+
+    On charge le fichier du modèle. Il ne se passe rien pour l'instant, parce qu'il ne contient qu'une fonction.
+
+    On appelle la fonction, ce qui exécute le code à l'intérieur desrc/model.php. On y récupère la liste des billets dans la variable$posts.
+
+    On charge le fichier de la vue (l'affichage), qui va présenter les informations dans une page HTML.
+
+Voilà, notre code commence à avoir les bases d'une structure plus solide !
+Récapitulons en vidéo
+
+Depuis le début de ce chapitre, on a fait des choix et des modifications plutôt complexes, sur plusieurs fichiers. Je vous ré-explique tout ça, modification par modification, durant ce screencast.
+Exercez-vous
+
+C’est à vous maintenant d’isoler l’accès aux données !
+
+Le zip du code est disponible depuis le Github.
+
+L'étiquette Git à utiliser pour récupérer le code source à l'état du début du chapitre estisolez-acces-donnees. Ou si vous préférez, voici le lien vers la page Github pour cette étape.
+En résumé
+
+    Le code qui accède aux données fait partie d'un second lot de code à isoler, à côté du code gérant l'affichage.
+
+    Il y a des morceaux de code en PHP qui ne font rien par eux-mêmes et qui se mettent simplement à disposition des autres morceaux de code.
+
+    Il y a un troisième lot de code à isoler. Il est responsable de gérer la requête HTTP de l'utilisateur, d'orchestrer la lecture des données et de renvoyer la réponse HTML.

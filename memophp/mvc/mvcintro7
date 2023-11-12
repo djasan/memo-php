@@ -1,0 +1,331 @@
+La gestion des erreurs est un sujet important en programmation. Il y a souvent des erreurs et il faut savoir vivre avec. Mais comment faire ça bien ? 🤔
+
+Si vous vous souvenez de notre routeur, il contient beaucoup de if. On fait des tests et on affiche des erreurs à chaque fois qu'il y a un problème :
+
+<?php
+
+
+if (test) {
+
+   // C'est bon, on fait des choses
+
+   // ...
+
+
+   if (encoreUnTest) {
+
+    // C'est bon, on continue
+
+   } else {
+
+    echo 'Erreur';
+
+   }
+
+} else {
+
+   echo 'Autre erreur';
+
+}
+
+Et alors, ça marche, non ?
+
+Oui, mais comme toujours, ce n'est pas parce que ça marche que c'est pratique à la longue. Les développeurs ont en particulier du mal à gérer comme ça les erreurs qui ont lieu à l'intérieur des fonctions.
+
+Que se passe-t-il s'il y a une erreur dans le contrôleur ou dans le modèle ? Va-t-on les laisser se charger d'afficher des erreurs ? Ça ne devrait normalement pas être à eux de le faire. Ils devraient remonter qu'il y a une erreur et laisser une partie spécialisée du code traiter l'erreur.
+Tirez parti des exceptions
+
+Les exceptions sont un moyen en programmation de gérer les erreurs. Vous en avez peut-être déjà vu dans du code PHP, ça ressemble à ça :
+
+<?php
+
+
+try {
+
+   // Essayer de faire quelque chose
+
+} catch (Exception $e) {
+
+   // Si une erreur se produit, on arrive ici
+
+}
+
+En premier lieu, l'ordinateur essaie d'exécuter les instructions qui se trouvent dans le bloc try("essayer" en anglais). Deux possibilités :
+
+    soit il ne se passe aucune erreur dans le bloc try: dans ce cas, on saute le bloc catchet on passe à la suite du code ;
+
+    soit une erreur se produit dans le bloc try: on arrête ce qu'on faisait et on va directement dans le catch(pour "attraper" l'erreur).
+
+C'est par exemple ce qu'on fait ici pour se connecter à la base de données :
+
+<?php
+
+
+// Code avant
+
+
+try {
+
+    $database = new PDO('mysql:host=localhost;dbname=blog;charset=utf8', 'blog', 'password');
+
+} catch(Exception $e) {
+
+    die('Erreur : '.$e->getMessage());
+
+}
+
+
+// Code après
+
+On essaie de se connecter à la base de données dans le bloc try:
+
+    si tout va bien, on continue (on va dans le "Code après") ;
+
+    si, en revanche, il y a un souci lors de la connexion (à l'intérieur du new PDO), alors on récupère l'erreur dans le bloccatchet ledieest exécuté.
+
+On peut afficher l'erreur qui nous a été envoyée avec $e->getMessage().
+
+Pour générer une erreur, il faut "jeter une exception", ou "lancer une exception" (oui, on dit ça 😂 ). Dès qu'il y a une erreur quelque part dans votre code, dans une fonction par exemple, vous utiliserez cette ligne :
+
+<?php
+
+throw new Exception('Message d\'erreur à transmettre');
+
+On va utiliser ce mécanisme dans notre code !
+
+En PHP, les exceptions sont intimement liées à la programmation orientée objet (POO). Pour l'instant, on ne va pas approfondir les détails. Mais apprendre la POO vous permettra de passer à un niveau de maîtrise supérieur des exceptions. Et ça tombe plutôt bien : la prochaine grande partie du cours sera dédiée à vous faire découvrir ce nouveau paradigme de programmation !
+Ajoutez la gestion des exceptions dans le routeur
+
+Je vous propose d'entourer tout notre routeur par un bloctry/catchcomme ceci :
+
+<?php
+
+// index.php
+
+
+require_once('src/controllers/add_comment.php');
+
+require_once('src/controllers/homepage.php');
+
+require_once('src/controllers/post.php');
+
+
+try {
+
+    if (isset($_GET['action']) && $_GET['action'] !== '') {
+
+        if ($_GET['action'] === 'post') {
+
+            if (isset($_GET['id']) && $_GET['id'] > 0) {
+
+                $identifier = $_GET['id'];
+
+
+                post($identifier);
+
+            } else {
+
+                throw new Exception('Aucun identifiant de billet envoyé');
+
+            }
+
+        } elseif ($_GET['action'] === 'addComment') {
+
+            if (isset($_GET['id']) && $_GET['id'] > 0) {
+
+                $identifier = $_GET['id'];
+
+
+                addComment($identifier, $_POST);
+
+            } else {
+
+                throw new Exception('Aucun identifiant de billet envoyé');
+
+            }
+
+        } else {
+
+            throw new Exception("La page que vous recherchez n'existe pas.");
+
+        }
+
+    } else {
+
+        homepage();
+
+    }
+
+} catch (Exception $e) { // S'il y a eu une erreur, alors...
+
+    echo 'Erreur : '.$e->getMessage();
+
+}
+
+Comme vous pouvez le voir, à l'endroit où les erreurs se produisent j'ai mis des throw new Exception. Cela arrête le bloc tryet amène directement l'ordinateur au bloc catch.
+
+Ici, notre bloc catchse contente de récupérer le message d'erreur qu'on a transmis et de l'afficher.
+Remontez les exceptions
+
+Pour l'instant, vous vous dites sûrement que ça n'est pas fou fou. Ok, les exceptions sont faites pour gérer les erreurs, mais on a surtout compliqué le code du routeur avec un nouveau bloc.
+
+C'est parce que vous n'avez pas encore vu à quel point les exceptions peuvent être pratiques ! Quand il se passe une erreur à l'intérieur d'une fonction située dans le bloc try, celle-ci est "remontée" jusqu'au bloc catch.
+
+Par exemple, notre routeur appelle la fonction du contrôleuraddComment, on est d'accord ? Que se passe-t-il quand il y a une erreur dans le contrôleur ? Pour l'instant, on fait ça :
+
+<?php
+
+// src/controllers/add_comment.php
+
+
+require_once('src/model/comment.php');
+
+
+function addComment(string $post, array $input)
+
+{
+
+    $author = null;
+
+    $comment = null;
+
+    if (!empty($input['author']) && !empty($input['comment'])) {
+
+        $author = $input['author'];
+
+        $comment = $input['comment'];
+
+    } else {
+
+        die('Les données du formulaire sont invalides.');
+
+    }
+
+
+    $success = createComment($post, $author, $comment);
+
+    if (!$success) {
+
+        die('Impossible d\'ajouter le commentaire !');
+
+    } else {
+
+        header('Location: index.php?action=post&id=' . $post);
+
+    }
+
+}
+
+Notre contrôleur arrête tout et affiche ses erreurs avec desdie. Il y a moyen de faire plus propre : jetons ici des exceptions, le code s'y arrêtera, et les erreurs seront remontées jusque dans le routeur qui contenait le bloc try !
+
+Voilà comment on peux mieux gérer les erreurs, en ajoutant desthrow  :
+
+<?php
+
+// src/controllers/add_comment.php
+
+
+require_once('src/model/comment.php');
+
+
+function addComment(string $post, array $input)
+
+{
+
+    $author = null;
+
+    $comment = null;
+
+    if (!empty($input['author']) && !empty($input['comment'])) {
+
+        $author = $input['author'];
+
+        $comment = $input['comment'];
+
+    } else {
+
+        throw new Exception('Les données du formulaire sont invalides.');
+
+    }
+
+
+    $success = createComment($post, $author, $comment);
+
+    if (!$success) {
+
+        throw new Exception('Impossible d\'ajouter le commentaire !');
+
+    } else {
+
+        header('Location: index.php?action=post&id=' . $post);
+
+    }
+
+}
+
+Pratique, non ? Ce principe de "remontée" de l'erreur jusqu'à l'endroit du code qui contenait le bloc try  est vraiment un gros avantage des exceptions.
+
+Comme ce n'est pas forcément évident à voir comme ça, je vous ai résumé le concept dans un schéma (j'adore les schémas, je vous l'ai déjà dit ?) :
+Lorsqu'une erreur survient dans une sous-fonction, elle est remontée jusqu'au bloc catch.
+L'erreur remonte jusqu'au bloc catch
+
+Du coup, dans la fonction dbConnect()de notre modèle, il n'est plus forcément nécessaire de garder un bloctry/catch. L'erreur de connexion à la base, s'il y en a une, sera remontée jusqu'au routeur :
+
+<?php
+
+
+function dbConnect()
+
+{
+
+    $database = new PDO('mysql:host=localhost;dbname=blog;charset=utf8', 'blog', 'password');
+
+
+    return $database;
+
+}
+
+Pour compléter mon explication, je vous propose de regarder ce screencast qui détaille, de manière très visuelle, le fonctionnement des exceptions en PHP.
+Exercez-vous
+
+Pour l'instant, notre bloccatchaffiche une erreur avec un simpleecho. Si nous voulons faire quelque chose de plus joli, nous pouvons appeler une vuetemplates/error.phpqui affiche joliment le message d'erreur.
+
+Il faudrait faire quelque chose dans ce goût-là :
+
+<?php
+
+// index.php
+
+
+require_once('src/controllers/add_comment.php');
+
+require_once('src/controllers/homepage.php');
+
+require_once('src/controllers/post.php');
+
+
+try {
+
+    // ...
+
+} catch (Exception $e) {
+
+    $errorMessage = $e->getMessage();
+
+
+    require('templates/error.php');
+
+}
+
+Bon, là je vous laisse travailler la vue vous-même, je pense que vous avez compris le concept !
+
+Récupérez le zip du début de ce chapitre depuis le Github. L'étiquette Git associée au début de ce chapitre estgerez-erreurs. Vous pouvez aussi retrouver le code dans votre navigateur via ce lien Github.
+En résumé
+
+    Les exceptions sont un mécanisme qui permet de gérer les remontées d'erreurs en PHP. Elles s'utilisent avec les trois mots clés :try,catchetthrow.
+
+    tryetcatchpermettent de créer des zones de contrôles sur les exceptions.
+
+    throwpermet de lancer une exception. Elle interrompra le flux classique d'exécution du code, jusqu'à être gérée par une zone de contrôle d'exception.
+
+    Les zones de contrôle d'exception peuvent s'imbriquer à l'infini.

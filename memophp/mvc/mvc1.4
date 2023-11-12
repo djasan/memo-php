@@ -1,0 +1,204 @@
+Notre code est maintenant découpé en 3 fichiers :
+
+    Un pour le traitement PHP : il récupère les données de la base. On l'appelle le modèle.
+
+    Un pour l'affichage : il affiche les informations dans une page HTML. On l'appelle la vue.
+
+    Un pour faire le lien entre les deux : on l'appelle le contrôleur.
+
+Cette structure est bonne, mais nous allons faire quelques améliorations cosmétiques. Ce ne sont peut-être que des détails pour vous, mais ça fera une vraie différence à la fin.
+
+Voici ce que nous allons améliorer :
+
+    l'anglais ;
+
+    la balise de fermeture PHP ;
+
+    l'utilisation de short open tags.
+
+Je vous présente le code amélioré. Nous le commenterons un peu ensuite.
+Découvrez le code amélioré
+index.php
+
+<?php
+
+
+require('src/model.php');
+
+
+$posts = getPosts();
+
+
+require('templates/homepage.php');
+
+Vous constaterez que j'ai enlevé la balise de fermeture?>à la fin du fichier. Plus fou encore, je vais vous dire que c'est... une amélioration.
+
+Les développeurs professionnels enlèvent en effet la balise de fermeture PHP dans les pages qui ne contiennent que du PHP. Sans rentrer dans les détails, ça permet d'éviter que ces fichiers n'envoient par erreur du code HTML sous forme d'espaces blancs alors qu'ils ne devraient pas. Faites-moi confiance et retirez ce?>si votre fichier ne contient que du PHP. Et si vous ne me faites pas confiance, lisez la recommandation officielle appelée PSR-12 qui dit :
+
+    The closing ?> tag MUST be omitted from files containing only PHP.
+
+Rassurez-vous, PHP sait que la balise se ferme à la fin du fichier (il n'y a pas le choix de toute façon !).
+src/model.php
+
+<?php
+
+
+function getPosts() {
+
+    // We connect to the database.
+
+    try {
+
+        $database = new PDO('mysql:host=localhost;dbname=blog;charset=utf8', 'blog', 'password');
+
+    } catch(Exception $e) {
+
+        die('Erreur : '.$e->getMessage());
+
+    }
+
+
+    // We retrieve the 5 last blog posts.
+
+    $statement = $database->query(
+
+        "SELECT id, title, content, DATE_FORMAT(creation_date, '%d/%m/%Y à %Hh%imin%ss') AS french_creation_date FROM posts ORDER BY creation_date DESC LIMIT 0, 5"
+
+    );
+
+    $posts = [];
+
+    while (($row = $statement->fetch())) {
+
+        $post = [
+
+            'title' => $row['title'],
+
+            'french_creation_date' => $row['french_creation_date'],
+
+            'content' => $row['content'],
+
+        ];
+
+
+        $posts[] = $post;
+
+    }
+
+
+    return $posts;
+
+}
+
+Dans le modèle, les requêtes se font depuis une base de données en anglais (j'ai renommé les noms des champs en base).
+
+N'ayez pas peur d'utiliser de l'anglais, même si vous le parlez mal. En programmation, écrire en mauvais anglais est préférable à écrire en bon français (!).
+templates/homepage.php
+
+<!DOCTYPE html>
+
+<html>
+
+    <head>
+
+        <meta charset="utf-8" />
+
+        <title>Le blog de l'AVBN</title>
+
+        <link href="style.css" rel="stylesheet" />
+
+    </head>
+
+
+    <body>
+
+        <h1>Le super blog de l'AVBN !</h1>
+
+        <p>Derniers billets du blog :</p>
+
+
+        <?php
+
+        foreach ($posts as $post) {
+
+        ?>
+
+            <div class="news">
+
+                <h3>
+
+                    <?= htmlspecialchars($post['title']); ?>
+
+                    <em>le <?= $post['french_creation_date']; ?></em>
+
+                </h3>
+
+                <p>
+
+                    <?= nl2br(htmlspecialchars($post['content'])); ?>
+
+                    <br />
+
+                    <em><a href="#">Commentaires</a></em>
+
+                </p>
+
+            </div>
+
+        <?php
+
+        }
+
+        ?>
+
+    </body>
+
+</html>
+
+Ce n'est pas obligatoire, mais j'en profite pour faire découvrir les short echo tags. C'est un raccourci en PHP pour faciliter la lisibilité du code. Ainsi, par exemple :
+
+<?php echo htmlspecialchars($post['title']); ?>
+
+... est devenu :
+
+<?= htmlspecialchars($post['title']) ?>
+
+Cela permet d'éviter d'avoir à écrireecho  quand on souhaite juste afficher une variable. Le but est d'être plus lisible dans la vue en enlevant le maximum de code PHP là-dedans (même si on ne peut pas tout enlever).
+
+Les frameworks PHP tels que Symfony ont carrément développé un langage de template (appelé Twig pour Symfony), qui permet de ne pas utiliser du tout de code PHP dans notre affichage.
+La base de données
+
+Pour avoir du code uniquement en anglais, j'ai dû renommer ma base de données en anglais. Pour l'instant, nous avons une seule table  posts  qui doit représenter les posts de blog.
+La structure de notre base de données : une table... en anglais !
+La structure de notre base de données : une table... en anglais !
+
+Il y a 4 champs, nommés en anglais :
+
+    id  (integer)
+
+    title  (varchar)
+
+    content  (text)
+
+    creation_date  (datetime)
+
+Cette table vous prendra 30 secondes à créer maximum. 😉
+
+Sachez que vous pouvez aussi renommer votre table et ses champs depuis phpMyAdmin, pour ne pas avoir à en créer une nouvelle.
+
+Pour les utilisateurs du dépôt Git du projet, vous pouvez partir du fichier  db.sql présent à la racine. Modifiez le nom de la table et ceux des champs, nettoyez votre base de données et rejouez-le simplement.
+Récapitulons en vidéo
+Exercez-vous
+
+Vous pensez avoir retenu ces quelques finitions ? Il est temps de refaire les modifications par vous-même.
+
+Téléchargez le zip du code sur le Github.
+
+Récupérez le commit Git à l'étiquettesoignez-cosmetique, aussi disponible via ce lien Github, et bon travail !
+En résumé
+
+    Il est recommandé de garder uniquement la balise ouvrante<?php  dans les fichiers qui contiennent seulement du PHP. Ceux qui contiennent aussi du HTML ne changent pas.
+
+    La syntaxe des "short open tags" peut être utilisée pour avoir des gabarits d'affichage plus concis.
+
+    En tant que développeur PHP, vous êtes aussi responsable de la bonne gestion de la base de données. Vous pouvez la traiter comme votre code : des noms clairs, de l'anglais…

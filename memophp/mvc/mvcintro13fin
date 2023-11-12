@@ -1,0 +1,137 @@
+Allez plus loin
+
+Il faut savoir s'arrêter à un moment donné... et je crois que ce moment est venu !
+
+On pourrait encore passer des heures et des heures à optimiser notre code, à l'affiner... mais nous finirions par recréer un framework nous-mêmes ! Or, si les frameworks ont été inventés, c'est bien pour une raison : ils nous permettent de ne pas avoir à réinventer la roue !
+
+Pourquoi nous avoir fait créer un site en MVC à la main si les frameworks existent ?
+
+Parce que j'avais besoin que vous compreniez ce qui a amené les développeurs à créer des frameworks. Ils se sont posé exactement les mêmes questions que vous (ce ne sont pas des extraterrestres !). Ils ont donc beaucoup réfléchi pour chercher des solutions afin que leur code reste propre.
+
+Voici quelques conseils si vous voulez aller plus loin.
+Autoloadez !
+
+Je vous l'avais promis, je vais vous parler d'une solution pour ne plus avoir à utiliser desrequire_onceen plus des espaces de nom. C'est le but du système autoload fourni par PHP.
+
+Concrètement, l'autoload est un mécanisme qui va être appelé à chaque fois que vous pointez sur un nom tiré d'un namespace. Pour chaque nom complet pointé (une classe, par exemple), un fichier PHP va être "automatiquement chargé". Et la chose fantastique, c'est que cette association entre "espace de nom" et "fichier à inclure" est entièrement personnalisable !
+
+Vous pouvez donc configurer un autoload qui va automatiquement charger toutes les classes du namespaceApplication\Model\Comment\depuis le fichiersrc/model/comment.php. Et faire de même pour le reste de votre modèle. Et pour vos contrôleurs.
+
+Bien sûr, si on fait comme ça, c'est fastidieux. Puissant, certes, mais vraiment fastidieux. Et c'est pour ça que la plupart des développeurs PHP utilisent une convention pour créer leurs classes et leurs fichiers : la PSR-4. Pour la résumer :
+
+    Une classe doit être présente par fichier.
+
+    Le nom du fichier doit correspondre au nom de la classe (avec les majuscules).
+
+    On a le droit à un préfixe personnalisé, qui correspondra à un dossier personnalisé.
+
+Je vous recommande donc vivement de coder avec ces contraintes !
+
+Quant à l'activation de l'autoload dans votre code... Il faut savoir que sur la plupart des projets sur lesquels vous travaillerez, les développeurs utilisent un gestionnaire de dépendances, appelé Composer. Il sert à inclure dans votre projet du code qui n'est pas maintenu par vous. C'est extrêmement puissant. Eh bien, ce gestionnaire de dépendances est capable de générer automatiquement un fichier PHP qui configure l'autoload. Il ne vous restera qu'à l'inclure en tête de votreindex.php:
+
+<?php
+
+
+require __DIR__ . '/vendor/autoload.php';
+
+Facile !
+Documentez !
+
+Les codes professionnels sont souvent bien documentés.
+
+Enfin... documentés oui, mais pas n'importe comment ! Il existe des conventions de documentation. En PHP, on commente dans le format PHPDoc.
+
+La PHPDoc est inspirée de la Javadoc, qui a été inventée pour le langage Java.
+
+À l'aide d'un programme spécial (PHPDoc), on peut générer automatiquement une documentation depuis votre code :
+Une documentation PHPDoc automatiquement générée depuis les commentaires du code
+Une documentation PHPDoc automatiquement générée depuis les commentaires du code
+
+Ce type de documentation peut se révéler très utile pour les développeurs qui ont besoin de comprendre comment votre code source fonctionne dans les grandes lignes.
+
+Pour obtenir ce résultat, les variables et fonctions membres des objets sont précédés d'un commentaire qui suit une convention bien particulière :
+
+<?php
+
+
+/**
+
+* Executes a compiler pass.
+
+*
+
+* This method will execute the business logic associated with a given compiler pass and allow it to manipulate
+
+* or consumer the Object Graph using the ProjectDescriptor object.
+
+*
+
+* @param ProjectDescriptor $project Representation of the Object Graph that can be manipulated.
+
+*
+
+* @return mixed
+
+*/
+
+public function execute(ProjectDescriptor $project)
+
+{
+
+   // ...
+
+}
+
+Alors oui, ça fait pas mal de commentaires dans le code, mais ça a un double avantage :
+
+    Le rôle du code est expliqué quand vous êtes en train de lire le fichier source.
+
+    Vous pouvez générer une documentation en HTML à partir de ça (comme on l'a vu sur la capture au-dessus).
+
+Cela nous permet d'expliquer notamment à quoi sert la fonction membre, quels paramètres elle prend en entrée et quelle valeur elle est censée retourner.
+Apprenez-en plus sur la programmation orientée objet
+
+La programmation orientée objet est un domaine très vaste. Nous n'avons fait qu'effleurer la surface des possibilités.
+
+Si un peu de théorie ne vous fait pas peur, je ne saurais trop vous recommander de lire le cours Programmez en orienté objet en PHP sur OpenClassrooms. Il contient de nombreux concepts qui vous seront utiles !
+Ne sortez pas un tank pour tuer une mouche
+
+En général, l'intérêt d'un code propre se voit quand vous commencez à travailler sur un gros projet. Sur un tout petit projet, il n'est pas forcément nécessaire de sortir l'artillerie lourde...
+Développeur sortant l'artillerie lourde pour un tout petit problème
+Développeur sortant l'artillerie lourde pour un tout petit problème
+
+Gardez donc en tête qu'il faut faire l'équilibre entre un beau code optimisé (qu'on met des heures à créer) et un code un peu moche (mais qui marche tout de suite). Ne soyez pas dans les extrêmes : ne cherchez pas non plus à tout optimiser à l'infini, au risque de passer trop de temps sur la beauté de votre code plutôt qu'à réellement créer des fonctionnalités utiles.
+
+Le plus grand ennemi des faux-débutants que vous êtes maintenant n'est pas le code sale (ça, c'est le truc des débutants). Non, votre plus grand ennemi s'appelle l'optimisation prématurée. Ça veut dire vouloir à tout prix faire méga-propre quand ça n'est pas nécessaire.
+
+Un bon développeur sait au contraire quand optimiser et quand ne pas optimiser. Il s'autorise même volontairement à laisser un peu de dette technique (un code non optimisé) pour pouvoir avancer plus vite. Ensuite, par contre, quand le besoin s'en fait ressentir, il n'hésite pas à revenir en arrière pour refactoriser son code afin qu'il soit plus optimisé.
+
+Bref, comme souvent dans la vie : il faut rester équilibré. 😊
+Utilisez un framework
+
+Ce sera sûrement la prochaine étape pour vous. Les frameworks sont des super-bibliothèques qui contiennent tout le code qui vous permet d'éviter de réinventer la roue.
+
+Les frameworks vous imposent souvent une façon de coder bien précise (notamment du MVC, de la POO, etc.). Il faut du temps pour apprendre à les utiliser correctement, mais vous gagnerez ensuite beaucoup de temps et aurez un code très propre.
+
+Il existe plusieurs frameworks PHP. Citons notamment :
+
+    Zend Framework : le framework créé par la société qui a conçu PHP (Zend). Il a un peu moins le vent en poupe aujourd'hui même s'il reste connu.
+
+    Symfony : un des frameworks les plus connus, développé par des Français. 🐓 Il existe le cours Construisez un site web à l'aide du framework Symfony 5 sur OpenClassrooms.
+
+    Laravel : un autre framework PHP très connu.
+
+Astuce ! Si vous voulez voir 2 développeurs se battre entre eux, demandez-leur quel est le meilleur framework. Amusement garanti ! 🍿
+
+OpenClassrooms utilise Symfony de son côté. N'hésitez pas à aller consulter le cours sur Symfony après avoir fini ce cours !
+En résumé
+
+    La Programmation Orientée Objet va beaucoup, beaucoup plus loin que ce qui est dit dans ce cours.
+
+    Documenter son code est une excellente pratique dans le monde professionnel. Il y a des outils pour ça, notamment la PHPDoc.
+
+    L'autoloading est une fonctionnalité de PHP qui permet de faire automatiquement lesrequire_oncedès que les namespaces sont utilisés. Pour en profiter, la plupart des codes source PHP respectent la PSR-4, une convention de nommage de classes et de fichiers.
+
+    Tous les outils ne sont pas utiles sur tous les projets. Il faut passer suffisamment de temps à bien concevoir son code, mais ne pas optimiser prématurément non plus.
+
+    Les frameworks sont des outils qui mettent à disposition des bibliothèques de code et des pratiques pour aider les développeurs à améliorer leur productivité. Il est recommandé d'avoir un certain niveau d'expertise sur les frameworks majeurs.
