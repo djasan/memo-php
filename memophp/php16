@@ -1,0 +1,234 @@
+Dans le chapitre précédent, vous avez mis en place un système de connexion. Il fonctionne certes, mais il ne conserve pas l'information !
+
+Dans ce chapitre, vous allez apprendre à manipuler deux notions qui permettent de conserver l'information entre deux pages PHP pour une durée plus ou moins longue. Bienvenue dans le monde des données persistantes, un sujet qui va nous occuper jusqu'à la fin de ce cours !
+
+À la fin de ce chapitre, vous disposerez d'un système de connexion entièrement fonctionnel.
+Conservez les données grâce aux sessions
+
+Jusqu'ici, nous étions parvenus à passer des variables de page en page à l'aide d'URL ou de formulaires. On sait ainsi envoyer d'une page à une autre le nom et le prénom du visiteur. Mais dès qu'on charge une autre page, ces informations sont « oubliées ». C'est pour cela qu'on a inventé les sessions.
+
+Les sessions permettent de conserver des variables sur toutes les pages de votre site. 
+Comprenez le fonctionnement des sessions
+
+Comment sont gérées les sessions en PHP ?
+
+Voici les trois étapes à connaître :
+Étape 1 : création d'une session unique
+
+    Un visiteur arrive sur votre site.
+
+    On demande à créer une session pour lui.
+
+    PHP génère alors un numéro unique.
+
+Ce numéro est souvent très grand. Exemple : a02bbffc6198e6e0cc2715047bc3766f.
+
+Ce numéro sert d'identifiant ; c'est ce qu'on appelle un « ID de session » ou  PHPSESSID  .
+
+PHP transmet automatiquement cet ID de page en page, en utilisant généralement un cookie.
+Étape 2 : création de variables pour la session
+
+Une fois la session générée, on peut créer une infinité de variables de session pour nos besoins.
+
+Par exemple, on peut créer :
+
+    une variable qui contient le nom du visiteur : $_SESSION['nom'] 
+
+    une autre qui contient son prénom : $_SESSION['prenom'] 
+
+    etc.
+
+Le serveur conserve ces variables même lorsque la page PHP a fini d'être générée. Autrement dit : quelle que soit la page de votre site, vous pourrez récupérer le nom et le prénom du visiteur via la superglobale $_SESSION !
+Étape 3 : suppression de la session
+
+Lorsque le visiteur se déconnecte de votre site, la session est fermée et PHP « oublie » alors toutes les variables de session que vous avez créées.
+
+Il est en fait difficile de savoir précisément quand un visiteur quitte votre site. En effet, lorsqu'il ferme son navigateur ou va sur un autre site, le vôtre n'en est pas informé.
+
+Soit le visiteur clique sur un bouton « Déconnexion » (que vous aurez créé) avant de s'en aller, soit on attend quelques minutes d'inactivité pour le déconnecter automatiquement : on parle alors de "timeout". Le plus souvent, le visiteur est déconnecté par un timeout.
+
+Pour activer ou détruire une session, deux fonctions sont à connaître :
+
+     session_start() : démarre le système de sessions. Si le visiteur vient d'arriver sur le site, alors un numéro de session est généré pour lui. 
+
+     session_destroy() : ferme la session du visiteur. Cette fonction est automatiquement appelée lorsque le visiteur ne charge plus de page de votre site pendant plusieurs minutes (c'est le timeout), mais vous pouvez aussi créer une page « Déconnexion » si le visiteur souhaite se déconnecter manuellement.
+
+Il faut appeler session_start() sur chacune de vos pages AVANT d'écrire le moindre code HTML ou PHP (avant même la balise  <!DOCTYPE>  ). 
+
+Si vous oubliez de lancer session_start()  , vous ne pourrez pas accéder à la variable superglobale   $_SESSION  .
+Mettez en place une session
+
+Je vous propose d'étudier un exemple concret pour que vous voyiez à quel point c'est simple à utiliser, en mettant en place une session pour conserver l'information sur l'utilisateur connecté après connexion :
+
+Si vous voulez détruire manuellement la session du visiteur, vous pouvez faire un lien « Déconnexion » amenant vers une page qui fait appel à la fonction  session_destroy()  .
+
+Néanmoins, sachez que sa session sera automatiquement détruite au bout d'un certain temps d'inactivité.
+
+Concrètement, les sessions peuvent servir dans de nombreux cas sur votre site (et pas seulement pour retenir un nom et un prénom !).
+
+Voici quelques exemples :
+
+    Imaginez un script qui demande un identifiant et un mot de passe pour qu'un visiteur puisse se « connecter » (s'authentifier). On peut enregistrer ces informations dans des variables de session et se souvenir de l'identifiant du visiteur sur toutes les pages du site !
+
+    Puisqu'on retient son identifiant et que la variable de session n'est créée que s'il a réussi à s'authentifier, on peut l'utiliser pour restreindre certaines pages de notre site à certains visiteurs uniquement. Cela permet de créer toute une zone d'administration sécurisée : si la variable de session login existe, on affiche le contenu, sinon on affiche une erreur. Cela devrait vous rappeler l'exercice sur la protection d'une page par mot de passe, sauf qu'ici, on peut se servir des sessions pour protéger automatiquement plusieurs pages.
+
+    On se sert activement des sessions sur les sites de vente en ligne. Cela permet de gérer un « panier » : on retient les produits que commande le client quelle que soit la page où il est. Lorsqu'il valide sa commande, on récupère ces informations et… on le fait payer. 
+
+Conservez les données grâce aux cookies
+
+Travailler avec des cookies revient à peu près à la même chose qu'avec des sessions, à quelques petites différences près que nous allons voir.
+
+Voici ce que nous allons faire pour découvrir les cookies :
+
+    On va voir ce qu'est exactement un cookie (parce que si ça se trouve, il y en a qui croient en ce moment même que je vais parler d'une recette de cuisine !).
+
+    Ensuite, nous verrons comment écrire un cookie : c'est facile à faire, si on respecte quelques règles.
+
+    Enfin, nous verrons comment récupérer le contenu d'un cookie : ce sera le plus simple.
+
+Comprenez le fonctionnement d'un cookie
+
+Un cookie, c'est un petit fichier que l'on enregistre sur l'ordinateur du visiteur.
+
+Ce fichier contient du texte et permet de « retenir » des informations sur le visiteur.
+
+Par exemple, vous inscrivez dans un cookie le pseudo du visiteur. Comme ça, la prochaine fois qu'il viendra sur votre site, vous pourrez lire son pseudo en allant regarder ce que son cookie contient.
+
+Parfois, les cookies ont une mauvaise image.
+
+On fait souvent l'erreur de penser que les cookies sont « dangereux ».
+
+Non, ce ne sont pas des virus, juste de petits fichiers texte qui permettent de retenir des informations.
+
+Au pire, un site marchand peut retenir que vous aimez les appareils photos numériques et vous afficher uniquement des pubs pour des appareils photos, mais c'est tout ; ces petites bêtes sont inoffensives pour votre ordinateur.
+
+Chaque cookie stocke généralement une information à la fois.
+
+Si vous voulez stocker le pseudonyme du visiteur et sa date de naissance, il est donc recommandé de créer deux cookies.
+
+Où sont stockés les cookies sur mon disque dur ?
+
+Cela dépend de votre navigateur web. Généralement, on ne touche pas directement à ces fichiers, mais on peut afficher à l'intérieur du navigateur la liste des cookies qui sont stockés.
+
+On peut choisir de les supprimer à tout moment.
+
+Si vous avez Mozilla Firefox, vous pouvez :
+
+    Aller dans le menu "Paramètres" > "Vie privée et sécurité" > "Cookies et données de sites".
+
+    Et cliquer sur "Gérer les données".
+
+Vous obtenez la liste et la valeur de tous les cookies stockés, comme sur la figure suivante.
+Capture d'écran qui montre la liste des cookies stockés sous Firefox. On voit qu'il y en a 15.
+Cookies sous Firefox
+
+Les cookies sont classés par site web. Chaque site web peut écrire, comme vous le voyez, plusieurs cookies. Les cookies sont donc des informations temporaires que l'on stocke sur l'ordinateur des visiteurs. La taille est limitée à quelques kilo-octets : vous ne pouvez pas stocker beaucoup d'informations à la fois, mais c'est en général suffisant.
+Écrivez un cookie
+
+Comme une variable, un cookie a un nom et une valeur.
+
+Par exemple, le cookie utilisateur aurait chez moi la valeur : LOGGED_USER 
+
+Pour écrire un cookie, on utilise la fonction PHP setcookie  (qui signifie « Placer un cookie », en anglais).
+
+On lui donne en général trois paramètres, dans l'ordre suivant :
+
+    Le nom du cookie (exemple : LOGGED_USER ).
+
+    La valeur du cookie (exemple :  utilisateur@exemple.com ).
+
+    La date d'expiration du cookie, sous forme de "timestamp" (exemple :  1090521508 ).
+
+Le paramètre correspondant à la date d'expiration du cookie mérite quelques explications. Il s'agit d'un timestamp, c'est-à-dire du nombre de secondes écoulées depuis le 1er janvier 1970. Le timestamp est une valeur qui augmente de 1 toutes les secondes. Pour obtenir le timestamp actuel, on fait appel à la fonction time() . Pour définir une date d'expiration du cookie, il faut ajouter au « moment actuel » le nombre de secondes au bout duquel il doit expirer.
+
+Si vous voulez supprimer le cookie dans un an, il vous faudra donc écrire :time() + 365*24*3600 
+
+Cela aura pour effet de supprimer votre cookie dans exactement un an.
+Sécurisez un cookie avec les propriétés httpOnly et secure
+
+Configurons les options httpOnly et secure sur le cookie.
+
+Sans rentrer dans les détails, cela rendra votre cookie inaccessible en JavaScript sur tous les navigateurs qui supportent cette option (c'est le cas de tous les navigateurs récents). Cette option permet de réduire drastiquement les risques de faille XSS sur votre site, au cas où vous auriez oublié d'utiliser htmlspecialchars à un moment.
+
+Voici comment créer un cookie de façon sécurisée :
+
+<?php
+
+// retenir l'email de la personne connectée pendant 1 an
+
+setcookie(
+
+    'LOGGED_USER',
+
+    'utilisateur@exemple.com',
+
+    [
+
+        'expires' => time() + 365*24*3600,
+
+        'secure' => true,
+
+        'httponly' => true,
+
+    ]
+
+);
+
+En écrivant les cookies de cette façon, vous diminuez le risque qu'un jour l'un de vos visiteurs puisse se faire voler le contenu d'un cookie à cause d'une faille XSS.
+
+Ne placez donc JAMAIS le moindre code HTML avant d'utiliser setcookie !
+
+La plupart des gens qui ont des problèmes avec setcookie ont fait cette erreur.
+Affichez et récupérez un cookie
+
+Avant de commencer à travailler sur une page, PHP lit les cookies du client pour récupérer toutes les informations qu'ils contiennent. Ces informations sont placées dans la superglobale  $_COOKIE sous forme d'un tableau (array), comme d'habitude.
+
+De ce fait, si je veux ressortir l'e-mail du visiteur que j'avais inscrit dans un cookie, il suffit d'écrire :  $_COOKIE['LOGGED_USER'] 
+
+Ce qui nous donne un code PHP tout bête pour afficher de nouveau le pseudo du visiteur :
+
+Bonjour <?php echo $_COOKIE['LOGGED_USER']; ?> !
+
+Comme vous le voyez encore une fois, le gros avantage, c'est que les superglobales sont accessibles partout.
+
+À noter que si le cookie n'existe pas, la variable superglobale n'existe pas. Il faut donc faire un  isset  pour vérifier si le cookie existe ou non.
+
+Les cookies viennent du visiteur. Comme toute information qui vient du visiteur, elle n'est pas sûre. N'importe quel visiteur peut créer des cookies et envoyer ainsi de fausses informations à votre site.
+Modifiez un cookie existant
+
+Vous vous demandez peut-être comment modifier un cookie déjà existant ? Il faut refaire appel à  setcookie en gardant le même nom de cookie, ce qui « écrasera » l'ancien.
+
+Par exemple, si c'est Laurène Castor qui se connecte au site, je ferai :
+
+<?php
+
+setcookie(
+
+    'LOGGED_USER',
+
+    'laurene.castor@exemple.com',
+
+    [
+
+        'expires' => time() + 365*24*3600,
+
+        'secure' => true,
+
+        'httponly' => true,
+
+    ]
+
+);
+
+Notez qu'alors le temps d'expiration du cookie est remis à zéro pour un an.
+En résumé
+
+    Les variables superglobales sont des variables automatiquement créées par PHP. Elles se présentent sous la forme de tableaux (arrays) contenant différents types d'informations.
+
+    Dans les chapitres précédents, nous avons découvert deux superglobales essentielles :  $_GET (qui contient les données issues de l'URL) et $_POST (qui contient les données issues d'un formulaire).
+
+    La superglobale $_SESSION permet de stocker des informations qui seront automatiquement transmises de page en page pendant toute la durée de visite d'un internaute sur votre site. Il faut au préalable activer les sessions en appelant la fonction  session_start() .
+
+    La superglobale $_COOKIE représente le contenu de tous les cookies stockés par votre site sur l'ordinateur du visiteur. Les cookies sont de petits fichiers que l'on peut écrire sur la machine du visiteur pour retenir par exemple son nom. On crée un cookie avec la fonction  setcookie() .
+
+

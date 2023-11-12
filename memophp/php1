@@ -1,0 +1,328 @@
+Nous savons désormais que PHP s'exécute sur le serveur, et que son rôle est de générer des pages web. Cependant, seul un serveur peut lire du PHP ; or, votre ordinateur n'est pas un serveur.
+
+Mais alors comment créer un site dynamique si PHP ne fonctionne pas chez moi ?
+
+Qu'à cela ne tienne : nous allons temporairement transformer votre ordinateur en serveur pour que vous puissiez exécuter du PHP et travailler sur votre site dynamique.
+
+Vous serez fin prêt à programmer après avoir lu ce chapitre !
+
+Selon que l'on crée un site statique ou un site dynamique, on a besoin de logiciels différents. En fait, faire un site dynamique nécessite malheureusement pour nous quelques logiciels supplémentaires !
+Ayez en tête les outils de base pour créer un site statique
+
+Les webmasters qui créent des sites statiques avec HTML et CSS ont de la chance, ils ont en général déjà tous les programmes dont ils ont besoin :
+
+    Un éditeur de texte.
+
+    Un navigateur web.
+
+Un éditeur de texte
+
+En théorie, un programme tel que le bloc-notes livré avec Windows suffit, bien qu'il soit recommandé d'utiliser un outil un peu plus évolué, comme Notepad++.
+
+Nous reparlerons du choix de l'éditeur à la fin de ce chapitre.
+Un navigateur web
+
+Il permet de tester la page web.
+capture d'écran de la page d'accueil de Google Chrome
+Google Chrome
+
+Vous pouvez utiliser par exemple :
+
+    Mozilla Firefox ;
+
+    Microsoft Edge ;
+
+    Google Chrome ;
+
+    Opera ;
+
+    Safari ;
+
+    ou tout autre navigateur auquel vous êtes habitué pour aller sur le Web.
+
+Il est d'ailleurs conseillé de tester son site régulièrement sur différents navigateurs.
+
+Bref ! Mais, et vous le savez déjà : pour créer un site dynamique, ces outils ne suffisent pas…
+
+Il est nécessaire d'installer des programmes supplémentaires !
+Utilisez les outils pour créer un site dynamique
+
+Pour que votre ordinateur puisse lire du PHP, il faut qu'il se comporte comme un serveur.
+
+Rassurez-vous : vous n'avez pas besoin d'acheter une machine spéciale pour cela !
+
+Il suffit simplement d'installer les mêmes programmes que ceux que l'on trouve sur les serveurs qui délivrent les sites web aux internautes.
+
+Quels sont les programmes que je dois installer ?
+Apache 
+
+C'est ce qu'on appelle un serveur web. Il s'agit du plus important de tous les programmes, car c'est lui qui est chargé de délivrer les pages web aux visiteurs. Cependant, Apache ne gère que les sites web statiques (il ne peut traiter que des pages HTML). Il faut donc le compléter avec d'autres programmes.
+PHP 
+
+C'est un plug-in pour Apache qui le rend capable de traiter des pages web dynamiques en PHP. En clair, en combinant Apache et PHP, notre ordinateur sera capable de lire des pages web en PHP.
+MySQL
+
+C'est le logiciel de gestion de bases de données dont je vous ai parlé avant. Il permet d'enregistrer des données de manière organisée (comme la liste des membres de votre site). Nous n'en aurons pas besoin immédiatement, mais autant l'installer de suite.
+
+Tous ces éléments sont libres et gratuits.
+
+Certes, il en existe d'autres (parfois payants), mais la combinaison Apache + PHP + MySQL est la plus courante sur les serveurs web. À tel point qu'on a créé des « packs » tout prêts qui contiennent tous ces éléments. Il est possible de les installer un à un, mais cela prend plus de temps et vous n'allez rien y gagner (sauf si vous êtes administrateur de serveur, ce qui ne devrait pas être votre cas).
+
+Dans la suite de ce chapitre, nous allons voir comment installer le « pack » qui convient en fonction de votre système d'exploitation.
+Installez MAMP 4.2 si vous êtes sous Windows ou Mac
+
+Il existe plusieurs "paquetages" pour Windows et Mac. Je vous propose d'utiliser MAMP, qui marche à la fois pour Windows et pour Mac. Il a l'avantage d'être régulièrement mis à jour.
+
+Il existe aussi un programme appelé WAMP pour Windows que vous pouvez essayer, mais je le trouve un peu plus compliqué à utiliser que MAMP. Même si vous êtes sous Windows, je vous recommande donc d'essayer MAMP en premier.
+
+    Commencez par télécharger MAMP sur son site. Prenez la version 4.2 correspondant à votre système d'exploitation.
+
+    Une fois téléchargé, installez-le. Il y a peu d'options. Si on vous propose d'installer MAMP Pro, dites non, car ce programme est payant et nous n'en aurons pas besoin. MAMP seul nous suffit.
+
+    Lancez ensuite MAMP. La fenêtre suivante devrait apparaître :
+
+Capture d'écran de MAMP une fois démarré
+MAMP une fois démarré
+
+MAMP met à jour régulièrement son logiciel et les captures d'écran et fonctionnalités présentées dans ce cours pourraient ne plus être identiques. Pour bien suivre ce cours, installez la version 4.2 du logiciel tel que recommandé.
+
+Lorsque MAMP démarre, il lance à son tour les deux programmes importants en fond : Apache et MySQL (il faudra peut-être cliquer sur "Start Servers"). Vous devriez voir les petites diodes s'afficher en vert en haut à droite de la fenêtre. Il faut parfois un petit moment avant que ces programmes ne démarrent.
+
+Si une fenêtre apparaît pour vous indiquer que le pare-feu bloque Apache ou MySQL, cliquez sur "Autoriser l'accès". Vous n'avez aucune raison de vous inquiéter, c'est parfaitement normal.
+Fenêtre pop-up pour autoriser l'accès de Firewall et Apache
+Firewall et Apache
+
+Si MAMP ne se lance pas correctement malgré tout, vérifiez que vous n'avez pas Skype ouvert en même temps. Les deux programmes ne peuvent pas tourner en parallèle (ils utilisent les mêmes ports de communication sur votre machine). Dans ce cas, fermez Skype pendant que vous utilisez MAMP.
+
+Lorsque MAMP a bien lancé Apache et MySQL, cliquez sur le bouton "Open WebStart Page", au milieu, qui vous permet d'ouvrir la page d'accueil de MAMP dans votre navigateur.
+Capture d'écran de la page d'accueil de MAMP dans le navigateur
+La page d'accueil de MAMP dans le navigateur
+
+Vous cliquerez sur "My Website" tout en haut pour ouvrir le site web que vous allez créer.
+
+Celui-ci devra être placé :
+
+    dans  C:\MAMP\htdocs  sous Windows ;
+
+    ou dans  /Applications/MAMP/htdocs  sous Mac.
+
+Vous pouvez changer ce répertoire par défaut si besoin dans les préférences de MAMP, section Web Server, où vous modifierez "Document root".
+
+Pour l'instant, si vous ouvrez "My Website", il n'y a rien.
+
+Je vous propose de créer un projet de test que nous appellerons tests.
+
+Pour ce faire :
+
+    Ouvrez l'explorateur Windows (ou le Finder Mac) et rendez-vous dans le dossier racine htdocs.
+
+    Créez un nouveau sous-dossier que vous appellerez tests, comme sur cette image :
+
+Capture d'écran du dossier
+Capture d'écran du dossier "tests" sur l'ordinateur
+
+Maintenant :
+
+    Supprimez le fichier index.php (ici, il ne nous servira à rien).
+
+    Retournez sur la page d'accueil de MAMP et allez dans "My Website". Vous devriez voir un dossier "tests" apparaître.
+
+Le dossier tests apparaît dans le navigateur
+Le dossier Tests apparaît dans le navigateur
+
+Si besoin, vous pouvez vous rendre directement dans ce dossier depuis votre navigateur à l'adresse http://localhost/tests ou http://localhost:8888/tests (selon votre configuration).
+
+Cliquez sur le dossier pour l'ouvrir. Il n'y a rien à l'intérieur pour le moment :
+Le dossier tests est vide
+Le dossier Tests est vide
+
+Si vous avez le même résultat, cela signifie que tout fonctionne. Bravo, vous avez installé MAMP et il fonctionne correctement. Vous êtes prêt à programmer en PHP !
+
+QUOI ?! Tout ça pour ça ?
+
+Eh oui, l'ami ! On n'a pas encore commencé à programmer, il ne fallait pas non plus vous attendre à un feu d'artifice tout de suite. 🎆
+
+Vous pouvez passer la section suivante qui ne concerne que les utilisateurs sous Linux.
+Installez XAMPP si vous êtes sous Linux
+
+Sous Linux, il est courant d'installer Apache, PHP et MySQL séparément.
+
+Toutefois, il existe aussi des packs tout prêts comme XAMPP (pour X, Apache, MySQL, Perl, PHP), anciennement connu sous le nom de LAMPP.
+
+Ce pack est plus complet que MAMP. Nous n'utiliserons toutefois qu'une partie des éléments installés.
+
+Sur le site officiel de XAMPP, recherchez le lien XAMPP pour Linux.
+Téléchargement de XAMPP pour Linux
+Téléchargement de XAMPP pour Linux
+
+XAMPP est aussi disponible pour Windows et Mac OS X, comme vous pourrez le constater sur le site. La méthode d'installation est sensiblement différente, mais vous pouvez l'essayer si vous avez déjà testé MAMP et qu'il ne vous convient pas.
+
+Une fois le téléchargement terminé, ouvrez une console. L'installation et le lancement de XAMPP se font en effet uniquement en console (allons, allons, pas de chichis, vous n'allez pas me faire avaler que c'est la première fois que vous l'ouvrez, la console !).
+
+Rendez-vous dans le dossier dans lequel vous avez téléchargé XAMPP. Par exemple, dans mon cas, le fichier se trouve sur le bureau :
+
+cd /Desktop
+
+Vous devez passer root pour installer et lancer XAMPP.
+
+root est le compte administrateur de la machine, qui a notamment le droit d'installer des programmes.
+
+Normalement, il suffit de taper su et de rentrer le mot de passe root  .
+
+Sous Ubuntu, il faudra taper sudo su et taper votre mot de passe habituel.
+
+Si comme moi vous utilisez Ubuntu, tapez donc :
+
+sudo su
+
+Donnez les droits d'exécution au fichier que vous venez de télécharger :
+
+chmod 755 xampp-linux-*-installer.run
+
+Puis lancez le programme d'installation :
+
+./xampp-linux-*-installer.run
+
+Pensez à remplacer l'étoile dans la commande par le numéro de version du fichier téléchargé.
+
+Et voilà ! XAMPP est maintenant installé.
+
+Pour démarrer XAMPP (et donc Apache, PHP et MySQL), tapez la commande suivante :
+
+/opt/lampp/lampp start
+
+Si vous désirez plus tard arrêter XAMPP, tapez :
+
+/opt/lampp/lampp stop
+
+N'oubliez pas que vous devez être root lorsque vous démarrez ou arrêtez XAMPP.
+
+Ce n'est pas bien compliqué, comme vous pouvez le voir !
+
+Vous pouvez maintenant tester XAMPP en ouvrant votre navigateur favori et en tapant l'adresse suivante : http://localhost  .
+
+Les fichiers PHP devront être placés dans le répertoire /opt/lampp/htdocs  . Vous pouvez y créer un sous-répertoire tests pour vos premiers tests.
+
+cd /opt/lampp/htdocs && mkdir tests
+
+Une fois le dossier créé, vous pouvez y accéder depuis votre navigateur à l'adresse suivante :http://localhost/tests  .
+Découvrez le serveur PHP intégré
+
+Nous avons installé des logiciels qui reproduisent le comportement exact d'un serveur tel qu'il serait configuré et installé en ligne. Mais pour de petits travaux sur votre ordinateur "en local", PHP fournit un serveur web interne très pratique, et qui utilise PHP en ligne de commande pour provoquer l'exécution du script et le rendu de la page.
+
+Par exemple, si l'on crée un fichier PHP index.php avec le contenu suivant :
+
+<?php
+
+
+echo "Hello world";
+
+et que nous exécutons en ligne de commande au niveau du dossier où se trouve le fichier index.php :
+
+php -S localhost:8080
+
+    localhost étant votre "nom de domaine" local ;
+
+    "8080" étant un port HTTP quelconque.
+
+Ensuite, en accédant à http://localhost:8080/index.php, le retour de l'exécution de ce script PHP sera disponible ! Pratique, non ?
+Mise en application du serveur PHP de développement pour afficher un Hello World
+Le serveur interne de PHP en action !
+
+Par la suite, dans les vidéos du cours, nous utiliserons l'une ou l'autre des options proposées.
+
+Vous êtes prêt à travailler en PHP !
+Utilisez un bon éditeur de texte
+
+Comme vous devez déjà le savoir, pour éditer le code d'une page web, vous avez plusieurs solutions :
+
+    utiliser un éditeur de texte tout simple que vous avez déjà, comme Bloc-notes. Ce logiciel suffit normalement à écrire des pages web en HTML et même en PHP, mais…
+
+    le mieux reste d'utiliser un logiciel spécialisé qui colore votre code (très pratique) et qui numérote vos lignes (très pratique aussi).
+
+Il existe des centaines et des centaines de logiciels gratuits faits pour les développeurs comme vous. Je vais vous en présenter ici deux :
+
+    Un que l'on peut utiliser gratuitement : Visual Studio Code.
+
+    Et un payant : PHPStorm.
+
+Je vous propose donc d'installer un logiciel qui va vous permettre d'éditer vos fichiers sources de manière efficace. Vous en avez probablement déjà installé un si vous avez appris à programmer en HTML/CSS, mais comme on n'est jamais trop prudent, je vais rapidement vous en présenter quelques-uns en fonction de votre système d'exploitation.
+
+Voici le code source HTML que nous allons utiliser pour commencer en terrain connu. Copiez-collez ce code dans l'éditeur de texte que je vais vous faire installer :
+
+<html>
+
+    <head>
+
+        <meta charset="utf-8"/>
+
+        <title>Ceci est une page HTML de test</title>
+
+    </head>
+
+
+    <body>
+
+        <h2>Page de test</h2>
+
+        <p>
+
+            Cette page contient <strong>uniquement</strong> du code HTML.<br/>
+
+
+
+            Voici quelques petits tests :
+
+
+
+        </p>
+
+
+        <ul>
+
+            <li style="color: blue;">Texte en bleu</li>
+
+            <li style="color: red;">Texte en rouge</li>
+
+            <li style="color: green;">Texte en vert</li>
+
+        </ul>
+
+    </body>
+
+</html>
+
+Il n'y a pas de PHP pour l'instant, afin de commencer en douceur. Nous allons simplement essayer d'enregistrer un fichier HTML avec ce code pour nous échauffer.
+Visual Studio Code
+
+Que vous soyez sous Windows, Mac ou Linux, je vous recommande de commencer avec l'éditeur Visual Studio Code qui est suffisamment léger et simple si vous débutez.
+
+Ne vous fiez pas à son apparente simplicité : Visual Studio Code est en effet rapide et simple à la base, mais il est possible d'étendre ses fonctionnalités avec d'innombrables plugins !
+
+Visual Studio Code est un très bon éditeur, utilisé par de nombreux développeurs (y compris des professionnels). Il voit en revanche ses limites sur de gros projets, où certains lui préfèrent PHPStorm.
+PHPStorm
+
+PHPStorm ressemble un peu plus à une "machine de guerre". Et pour cause : c'est un IDE, un environnement de travail de développeur. Il est utilisé par de nombreux développeurs PHP professionnels de ma connaissance. 
+Interface de PHPStorm
+L'éditeur PHPStorm, utilisé par de nombreux professionnels
+
+PHPStorm est plus "costaud" que Visual Studio Code. Il met plus de temps à charger, il peut avoir de nombreuses fonctionnalités avancées grâce à ses plugins.
+
+Par ailleurs, PHPStorm est payant.
+
+Vous ne commencerez peut-être pas de suite avec PHPStorm, mais gardez-le sur votre radar car c'est un outil très utilisé que vous essaierez sûrement un jour.
+En résumé
+
+    Pour créer des sites web dynamiques, nous devons installer des outils qui transforment notre ordinateur en serveur, afin de pouvoir tester notre site.
+
+    Les principaux outils nécessaires sont :
+
+        Apache, le serveur web.
+
+        PHP, le programme qui permet au serveur web d'exécuter des pages PHP.
+
+        MySQL, le logiciel de gestion de bases de données.
+
+    Bien qu'il soit possible d'installer ces outils séparément, il est plus simple pour nous d'installer un paquetage tout prêt : MAMP sous Windows et macOS, ou XAMPP sous Linux.
+
+    Il est conseillé d'utiliser un éditeur de texte qui colore le code source, comme Visual Studio Code, pour programmer convenablement en PHP. Pour les personnes plus expérimentées qui travaillent sur de gros projets, je recommande PHPStorm.

@@ -1,0 +1,123 @@
+Configurez PHP pour visualiser les erreurs
+
+Avant d'aller plus loin, il est important de faire un petit point à propos de quelque chose que vous allez sans doute beaucoup rencontrer (et ce n'est absolument pas grave !) : les erreurs.
+
+En effet, lorsqu'un script PHP plante, le comportement par défaut de PHP est de n'afficher qu'une page blanche (une page de navigateur sans contenu).
+
+Pour faciliter notre vie de développeur, il va falloir faire en sorte que les erreurs PHP s'affichent. Sinon, nous aurons de grosses difficultés par la suite pour comprendre pourquoi nos pages ne marchent pas.
+
+Nous allons donc changer la configuration de PHP.
+Configurez PHP pour afficher les erreurs
+
+Eh oui, PHP est configurable !
+
+Si les erreurs s'affichent déjà bien dans votre navigateur, inutile de faire les manipulations qui vont suivre !
+
+Par défaut, PHP n'affiche pas les erreurs.
+
+Pourquoi ?
+
+Pour des raisons de sécurité ! C'est pour éviter de donner trop d'indications aux utilisateurs, tout simplement.
+
+Un mantra à vous répéter :
+
+    "Moins l'utilisateur en sait sur mon application, mieux mon application se portera."
+
+La configuration de PHP se fait dans un fichier appelé php.ini
+
+Où est-ce qu'il se trouve, ce fichier ?
+
+En fait, vous allez devoir le localiser. Mais pas de panique, je vous explique tout !
+Localisez le fichier de configuration PHP du serveur web
+
+Pour connaître l'ensemble des informations relatives au PHP utilisé par le serveur web, il existe une commande PHP, phpinfo() (on parle de fonction, mais on y reviendra).
+
+Nous allons utiliser phpinfo() pour localiser le fichier de configuration, puis le modifier.
+
+Je vous invite donc à créer un fichier PHP avec le code qui suit :
+
+<?php
+
+
+phpinfo();
+
+Enregistrez-le sous le nom info.php  dans le dossier accessible pour votre serveur web (normalement htdocs ou www  ).
+
+Et enfin, affichez la page. Vous devriez obtenir le résultat suivant :
+Résultat du script contenant l'instruction  phpinfo() : Sur cette capture d'écran on peut voir la version de PHP utilisée (PHP 7.4.2) ; le type de serveur web (ici Apache) ; et la localisation du (ou des fichiers) de configuration pour PHP.
+Résultat du script contenant l'instruction phpinfo()
+
+Cette page contient toute une flopée d'informations, dont :
+
+    la version de PHP utilisée (pour moi, il s'agit de PHP 7.4.2) ;
+
+    le type de serveur web (ici Apache) ;
+
+    et la localisation du (ou des fichiers) de configuration pour PHP.
+
+Notez que vous pouvez aussi accéder au phpinfo depuis le menu "TOOLS/PHPINFO" en haut de la page d'accueil de MAMP.
+
+Retrouvez la ligne "Loaded Configuration File" (ce qui signifie "fichier de configuration chargé", en anglais), et regardez la valeur. Dans mon cas, on peut voir ceci :
+La capture d'écran montre le chemin du fichier de configuration de PHP chargé par le serveur web : il sera différent d'un ordinateur à l'autre. Dans mon cas, sa valeur indique qu'il est rangé dans un dossier
+Chemin du fichier de configuration de PHP chargé par le serveur web
+
+Je vais donc ouvrir ce fichier et le modifier.
+Modifiez le fichier de configuration PHP
+
+Il faut s'assurer que :
+
+    la clé de configuration error_reporting a la valeur E_ALL
+
+    la clé de configuration  display_errors a la valeur On 
+
+Allons-y étape par étape :
+
+    Effectuez une recherche dans le fichier avec le terme error_reporting . S'il n'y a pas écrit  error_reporting = E_ALL , remplacez-la par la bonne valeur.
+
+    Ensuite, effectuez une nouvelle recherche dans le fichier avec le terme display_errors . S'il n'y a pas écrit display_errors = On , remplacez-la par la bonne valeur.
+
+    Enregistrez le fichier.
+
+    Relancez le serveur pour qu'il prenne en compte vos modifications. Il suffit de relancer MAMP, par exemple.
+
+La capture d'écran montre que le reporting et l'affichage des erreurs dans le fichier php.ini sont activés : on peut voir
+Vérifiez que vous avez bien activé les erreurs dans le fichier php.ini
+
+Dans le fichier de configuration, le point-virgule ( ; ) en début de ligne signifie que tout ce qui suit est un commentaire, et est donc ignoré.
+
+Si l'une de ces lignes (ou les deux) sont commentées, il suffit de retirer le point-virgule en début de ligne.
+
+Faites attention à ce que ces lignes de configuration n'existent qu'une seule fois dans le fichier : en effet, ne créez pas ces lignes si elles existaient déjà.
+Testez l'affichage des erreurs
+
+Nous allons maintenant créer une erreur dans un script PHP pour nous assurer que l'erreur s'affiche dans le navigateur.
+
+Dans le script (que nous avons créé pour afficher les informations relatives à PHP pour le serveur web ; nous l'avions appelé  info.php  ), retirez une parenthèse, puis enregistrez le fichier.
+
+Ça devrait donner ceci :
+
+<?php
+
+
+phpinfo(;
+
+Oui, je sais, il manque une parenthèse, c'est une erreur, on le fait exprès.
+
+Maintenant, affichez la page à l'aide de votre navigateur web.
+Voici ce que la page web affiche lorsque l'on teste s'il y a des erreurs : il est écrit qu'il y a une
+Affichage des erreurs dans le navigateur web
+
+Et voilà !
+
+Si vous voyez bien cette erreur, c'est que PHP est configuré pour afficher le détail des erreurs.
+
+Ouf ! Ça nous fera gagner beaucoup de temps pour comprendre nos problèmes par la suite.
+En résumé
+
+    PHP dispose d'un mode de déboggage pour afficher les erreurs contenues dans vos scripts.
+
+    Pour activer le déboggage, on modifie la configuration de PHP en éditant le fichier php.ini.
+
+    On peut trouver la localisation de ce fichier (et plein d'autres informations) en exécutant la fonction phpinfo() <?php phpinfo(); ?>  .
+
+    Pour activer l'affichage, on change la propriété display_errors à On et on filtre le type d'erreurs avec error_reporting (on choisira E_ALL pour voir toutes les erreurs !).

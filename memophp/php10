@@ -1,0 +1,572 @@
+Alors comme ça, votre script ne marche pas ? Et PHP vous affiche des erreurs incompréhensibles ?
+
+Pas de souci à vous faire, c'est tout à fait normal, on ne réussit jamais un script du premier coup… en tout cas, moi, jamais !
+
+Des milliers de messages d'erreur différents peuvent survenir.
+
+OK, jusque-là rien de très rassurant. Et je n'ai pas vraiment la possibilité de vous en dresser une liste complète… mais je peux vous présenter les erreurs les plus courantes, ce qui devrait résoudre la grande majorité de vos problèmes. 😅
+
+Allons-y !
+Préparez-vous à faire ces erreurs courantes
+
+Je pense qu'il est facile de parler d'erreurs « courantes », car vous verrez que certaines erreurs reviennent plus souvent que d'autres.
+
+Nous allons passer en revue les erreurs suivantes :
+
+    "Parse error".
+
+    "Undefined function".
+
+    "Wrong parameter count".
+
+"Parse error" = si vous formulez mal une instruction
+
+Si on devait dire qu'il existe UNE erreur de base, ça serait très certainement celle-là. Impossible de programmer en PHP sans y avoir droit un jour.
+
+Le message d'erreur que vous obtenez ressemble à celui-ci :
+
+Parse error: syntax error in error.php on line 7
+
+Ce message vous indique une erreur dans error .php à la ligne 7.
+
+Généralement, cela veut dire que votre problème se situe à la ligne 7, mais ce n'est pas toujours le cas (trop facile, sinon). Parfois, c'est la ligne précédente qui a un problème : pensez donc à regarder autour de la ligne indiquée.
+
+Avec un éditeur de texte spécialisé comme Visual Studio Code, vous pouvez voir les numéros de ligne.
+Capture d'écran qui montre la numérotation des lignes dans Sublime Text
+Numérotation des lignes dans Visual Studio Code
+
+Bon, mais concrètement, qu'est-ce qu'une parse error ?
+
+Une "parse error" est en fait une instruction PHP mal formée. Il peut y avoir plusieurs causes :
+
+Oublier le point-virgule à la fin de l'instruction.
+
+Comme toutes les instructions doivent se terminer par un point-virgule, si vous oubliez d'en mettre un, ça provoquera une parse error. Par exemple :
+
+$id_news = 5
+
+… génèrera une parse error. Si vous mettez le point-virgule à la fin, tout rentrera dans l'ordre !
+
+$id_news = 5;
+
+Oublier de fermer un guillemet (une apostrophe ou une parenthèse).
+
+Par exemple :
+
+echo "Bonjour !;
+
+Il suffit de fermer correctement les guillemets et vous n'aurez plus de problème :
+
+echo "Bonjour !";
+
+Se tromper dans la concaténation et oublier un point.
+
+echo "J'ai " . $age " ans";
+
+Une fois l'erreur corrigée, ça donne :
+
+echo "J'ai " . $age . " ans";
+
+Mal fermer une accolade.
+
+Cela peut être le cas pour une structure en if  , par exemple.
+
+Vérifiez que vous avez correctement fermé toutes vos accolades.
+
+Si vous oubliez d'en fermer une, il est probable que la parse error vous indique que l'erreur se trouve à la dernière ligne du fichier (c'est-à-dire à la ligne 115 si votre fichier comporte 115 lignes).
+
+Donc, si on vous indique une erreur à la dernière ligne, il va probablement falloir relire tout le fichier PHP à la recherche d'une accolade mal fermée !
+
+Si on vous dit que l'erreur est à la ligne 15 et que vous ne voyez vraiment pas d'erreur à cette ligne, n'hésitez pas à chercher l'erreur à la ligne juste au-dessus, elle s'y trouve peut-être !
+"Undefined function" = si vous utilisez une fonction non reconnue
+
+Une autre erreur assez classique, c'est la fonction inconnue.
+
+Vous obtenez ce message d'erreur :
+
+Fatal Error: Call to undefined function: is_valid_recipe() in fichier.php on line 27
+
+Là, il faut comprendre que vous avez utilisé une fonction qui n'existe pas.
+
+Deux possibilités :
+
+    Soit la fonction n'existe vraiment pas. Vous avez probablement fait une faute de frappe, vérifiez si une fonction à l'orthographe similaire existe.
+
+    Soit la fonction existe vraiment, mais PHP ne la reconnaît pas. C'est parce que cette fonction se trouve dans une extension de PHP que vous n'avez pas activée. Par exemple, si vous essayez d'utiliser la fonction imagepng alors que vous n'avez pas activé la bibliothèque nécessaire pour les images en PHP, on vous dira que la fonction n'existe pas. Activez la bibliothèque qui utilise la fonction, et tout sera réglé.
+
+Une dernière chose : il se peut aussi que vous essayiez d'utiliser une fonction qui n'est pas disponible dans la version de PHP que vous avez. Vérifiez dans le manuel dans quelles versions de PHP cette fonction est disponible.
+"Wrong parameter count" = si vous entrez un nombre incorrect de paramètres pour une fonction
+
+Si vous utilisez mal une fonction, vous aurez cette erreur :
+
+Warning: Wrong parameter count for fonction() in fichier.php on line 112
+
+Cela signifie que :
+
+    vous avez oublié des paramètres pour la fonction ;
+
+    ou même que vous en avez trop mis.
+
+S'il s'agit d'une fonction fournie par PHP, rendez-vous sur la documentation et consultez le mode d'emploi de la fonction pour savoir combien de paramètres elle prend, et quels sont ceux qui sont facultatifs.
+
+Par exemple, la fonction fopen requiert au minimum deux paramètres :
+
+    Le premier pour le nom du fichier à ouvrir.
+
+    Et le second pour le mode d'ouverture (en lecture seule, écriture, etc.).
+
+Si vous ne mettez que le nom du fichier à ouvrir, comme ceci :
+
+$fichier = fopen("fichier.txt");
+
+… vous aurez l'erreur « Wrong parameter count ». Pensez donc à rajouter le paramètre qui manque, par exemple comme ceci :
+
+$fichier = fopen("fichier.txt", "r");
+
+Découvrez ces erreurs plus rares
+
+Les erreurs PHP sont très variées. N'espérez donc pas que je vous fasse ici la liste des 3 946 erreurs de PHP, j'en serais incapable (je ne les ai pas encore toutes eues, mais ça ne saurait tarder, à l'allure à laquelle je vais).
+
+Je vais vous montrer quelques erreurs un peu plus rares que « parse error », mais que vous rencontrerez probablement un jour. Si déjà je peux vous aider pour ces erreurs-là, ce sera bien.
+
+Nous allons voir les erreurs :
+
+    "Headers already sent by…".
+
+    "L'image contient des erreurs".
+
+    "Maximum execution time exceeded".
+
+"Headers already sent by…" = si vous écrivez du code au mauvais endroit
+
+Voilà une erreur classique quand on travaille avec les sessions ou avec les cookies :
+
+Cannot modify header information - headers already sent by ...
+
+Que doit-on comprendre par là ?
+
+Les "headers" sont des informations d'en-tête  qui sont envoyées avant toute chose au navigateur du visiteur.
+
+Elles permettent de dire :
+
+    "Ce que tu vas recevoir est une page HTML".
+
+    ou
+
+    "Ce que tu vas recevoir est une image PNG", ou encore "Inscris un cookie".
+
+Toutes ces choses-là doivent être effectuées avant que le moindre code HTML ne soit envoyé.
+
+En PHP, la fonction qui permet d'envoyer des informations de "headers" s'appelle  header() 
+
+. Il y a d'autres fonctions qui envoient des "headers" toutes seules. C'est le cas de :
+
+     session_start() 
+
+     setcookie()  
+
+Ce que vous devez retenir, c'est que chacune de ces fonctions doit être utilisée au tout début de votre code PHP. Il ne faut RIEN mettre avant, sinon ça provoquera l'erreur « Headers already sent by… ».
+
+Un exemple de code qui génère l'erreur :
+
+<html>
+
+<?php session_start(); ?>
+
+Ici, j'ai eu le malheur de mettre un peu de code HTML avant le session_start() et c'est ce qui a provoqué l'erreur.
+
+Mettez le session_start() en tout premier, et vous n'aurez plus de problème :
+
+<?php session_start(); ?>
+
+<html>
+
+"L'image contient des erreurs" = si vous avez fait une erreur d'utilisation de la librairie GD
+
+C'est le navigateur qui vous donne ce message d'erreur, et non pas PHP.
+
+Ce message survient lorsque vous travaillez avec la bibliothèque GD.
+
+Si vous avez fait une erreur dans votre code (par exemple une banale « parse error »), cette erreur sera inscrite dans l'image. Du coup, l'image ne sera pas valide et le navigateur ne pourra pas l'afficher.
+
+Bon, d'accord, l'erreur est dans l'image. Mais comment faire pour faire « apparaître » l'erreur ?
+
+Deux possibilités :
+
+    vous pouvez supprimer la ligne suivante dans votre code :
+
+<?php header ("Content-type: image/png"); ?>
+
+L'erreur apparaîtra à la place du message « L'image contient des erreurs » ;
+
+    vous pouvez aussi afficher le code source de l'image (comme si vous alliez regarder la source HTML de la page, sauf que là, il s'agit d'une image).
+
+Dans les deux cas, vous verrez le message d'erreur apparaître. À partir de là, il ne vous restera plus qu'à corriger le bug !
+"Maximum execution time exceeded" = si vous avez fait une boucle infinie
+
+Ça, c'est le genre d'erreur qui arrive le plus souvent à cause d'une boucle infinie !
+
+Fatal error: Maximum execution time exceeded in fichier.php on line 57
+
+Imaginez que vous fassiez une boucle while mais que celle-ci ne s'arrête jamais : votre script PHP va tourner en boucle sans jamais s'arrêter.
+
+Heureusement, PHP limite le temps d'exécution d'une page PHP à 30 secondes par défaut.
+
+Si une page met plus de 30 secondes à se générer, PHP arrête tout en signalant que c'est trop long. Et il fait bien, parce que sinon cela pourrait ralentir tout le serveur et rendre votre site inaccessible !
+
+Voici un exemple de boucle while qui ne s'arrêtera jamais :
+
+<?php
+
+$counter = 5;
+
+while ($counter == 5)
+
+{
+
+    echo 'Zéro ';
+
+}
+
+?>
+
+Comme vous pouvez le voir, un tel code PHP ne s'arrêtera jamais parce que $counter vaut toujours 5…
+
+Si vous avez donc l'erreur "Maximum execution time exceeded", il va falloir repérer une boucle qui ne s'arrête jamais, car c'est elle qui provoque ce problème.
+
+Rassurez-vous : la limite est fixée à 30 secondes, mais vous n'y serez jamais confronté. En général, un serveur met moins de 50 millisecondes à charger une page PHP. On est très loin des 30 secondes !
+Déboguez votre premier script
+
+Rien ne vaut la pratique pour mettre en application ce que vous venez d'apprendre ! Je vous propose donc de copier le code ci-dessous et de le corriger :
+
+<?php
+
+
+$users = [
+
+    [
+
+        'full_name' => 'Mickaël Andrieu',
+
+        'email' => 'mickael.andrieu@exemple.com'
+
+        'age' => 34,
+
+    ],
+
+    [
+
+        'full_name' => 'Mathieu Nebra',
+
+        'email' => 'mathieu.nebra@exemple.com',
+
+        'age' => 34,
+
+    ],
+
+    [
+
+        'full_name' => 'Laurène Castor',
+
+        'email' => 'laurene.castor@exemple.com',
+
+        'age' => 28,
+
+    ],
+
+];
+
+
+$recipes = [
+
+    [
+
+        'title' => 'Cassoulet',
+
+        'recipe' => '',
+
+        'author' => 'mickael.andrieu@exemple.com',
+
+        'is_enabled' => true,
+
+    ],
+
+    [
+
+        'title' => 'Couscous',
+
+        'recipe' => '',
+
+        'author' => 'mickael.andrieu@exemple.com',
+
+        'is_enabled' => false,
+
+    ],
+
+    [
+
+        'title' => 'Escalope milanaise',
+
+        'recipe' => '',
+
+        'author' => 'mathieu.nebra@exemple.com',
+
+        'is_enabled' => true,
+
+    ],
+
+    [
+
+        'title' => 'Salade Romaine',
+
+        'recipe' => '',
+
+        'author' => 'laurene.castor@exemple.com',
+
+        'is_enablad' => false,
+
+    ],
+
+];
+
+
+function display_recipe(array $recipe) : string
+
+{
+
+    $recipe_content = '';
+
+
+    if ($recipe['is_enabled']) {
+
+        $recipe_content = '<article>';
+
+        $recipe_content .= '<h3>' . $recipe['title'] . '</h3>';
+
+        $recipe_content .= '<div>' . $recipe['recipe'] . '</div>';
+
+        $recipe_content .= '<i>' . $recipe['author'] . '</i>';
+
+        $recipe_content .= '</article>';
+
+    }
+
+    
+
+    return $recipe;
+
+}
+
+
+function display_author(string $authorEmail, array $users) : string
+
+{
+
+    for ($i = 0; $i < count($users); $i++) {
+
+        $author = $users[$i];
+
+        if ($authorEmail === $author['email']) {
+
+            return $author['full_name'] . '(' . $author['age'] . ' ans)';
+
+        }
+
+    }
+
+}
+
+
+function get_recipes(array $recipes) : array
+
+{
+
+    $valid_recipes = [];
+
+
+    foreach($recipes as $recipe) {
+
+        if ($recipe['is_enabled']) {
+
+            $valid_recipes[] = $recipe;
+
+        }
+
+    }
+
+
+    return $valid_recipes;
+
+}
+
+
+?>
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <title>Les recettes mais page blanche :(</title>
+
+    <link
+
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" 
+
+        rel="stylesheet"
+
+    >
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>Liste des recettes</h1>
+
+        <!-- Plus facile à lire -->
+
+        <?php foreach(get_recipes($recipes) as $recipe) : ?>
+
+            <article>
+
+                <h3><?php echo($recipe['title']); ?></h3>
+
+                <div><?php echo($recipe['recipe']); ?></div>
+
+                <i><?php echo(display_author($recipe['author'], $users)); ?></i>
+
+            </article>
+
+        <?php endforeach ?>
+
+    </div>   
+
+</body>
+
+</html>
+
+
+Pour rappel :
+
+    Il faut soit mettre ce fichier dans un dossier accessible à votre serveur, soit exécuter le serveur local de PHP dans le dossier qui contient ce fichier.
+
+    Il faut avoir activé le déboggage et configuré la propriété display_error.
+
+    Il y a plusieurs erreurs à corriger : allez-y par étape, sans paniquer.
+
+Alors, avez-vous fait des erreurs en corrigeant des erreurs ? 🤣
+
+La première erreur affichée par PHP est la suivante :
+
+Parse error: syntax error, unexpected ''age'' (T_CONSTANT_ENCAPSED_STRING), expecting ']' in exemple.php on line 7
+
+Il y a donc une erreur à la ligne 7, ou autour... vous aurez peut être remarqué qu'il manque une virgule en ligne 6 juste après l'assignation de la propriété email :
+
+<?php
+
+
+// avant
+
+[
+
+    'email' => 'mickael.andrieu@exemple.com' // OUPS
+
+    'age' => 34,
+
+]
+
+
+
+// après
+
+[
+
+    'email' => 'mickael.andrieu@exemple.com',
+
+    'age' => 34,
+
+]
+
+La deuxième erreur est plus discrète puisque le site a l'air de s'afficher correctement sous vos yeux, mais il y a pourtant un message d'erreur sous le titre principal :
+
+Notice: Undefined index: is_enabled in exemple.php on line 78
+
+L'index ou la clé pour le tableau $recipe ne semblent pas définis (bug qui ne serait jamais arrivé si on avait utilisé la fonction array_key_exists, d'ailleurs ! 🤓
+
+Il va nous falloir vérifier le tableau des recettes et compléter ou corriger :
+
+<?php
+
+
+// avant
+
+[
+
+    'title' => 'Salade Romaine',
+
+    'recipe' => '',
+
+    'author' => 'laurene.castor@exemple.com',
+
+    'is_enablad' => false, // OUPS
+
+]
+
+
+// après
+
+[
+
+    'title' => 'Salade Romaine',
+
+    'recipe' => '',
+
+    'author' => 'laurene.castor@exemple.com',
+
+    'is_enabled' => false,
+
+]
+
+Il y avait une toute petite coquille : is_enabled avait été remplacé par  is_enablad  .
+
+La troisième erreur et dernière erreur est beaucoup plus bavarde :
+
+Fatal error: Uncaught TypeError: Return value of display_author() must be of the type string, none returned in exemple.php:71
+Stack trace: #0 exemple.php(107): display_author() #1 {main} thrown in exemple.php on line 71
+
+Cette fois, l'erreur provient du retour de la fonction display_author qui doit retourner une chaîne de caractères (le nom de l'utilisateur) et retourne... rien (None).
+
+Que s'est-il passé ?
+
+<?php
+
+function display_author(string $authorEmail, array $users) : string
+
+{
+
+    for ($i = 0; $i < count($users); $i++) {
+
+        $author = $users[$i];
+
+        if ($authorEmail === $author['email']) {
+
+            return $author['full_name'] . '(' . $author['age'] . ' ans)';
+
+        }
+
+    }
+
+}
+
+Si l'on considère le code de la fonction, on peut noter que si l'e-mail est trouvé, alors le nom et l'âge de l'utilisateur sont retournés.
+
+Mais si l'e-mail n'est pas trouvé ? 
+
+Eh bien, il ne se passe rien car le cas n'a pas été prévu. Vous avez deux options pour tenter de  corriger ce problème :
+
+    Retourner une chaîne de caractères même si le mail n'est pas trouvé ("utilisateur inconnu").
+
+    Vérifier la liste des e-mails utilisateur et recette : si ça se trouve, il y a une coquille dans l'un des e-mails...
